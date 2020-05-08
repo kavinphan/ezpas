@@ -20,5 +20,6 @@
     "block.ezpas.green_stained_pipe": "Green Stained Pipe",
     "block.ezpas.red_stained_pipe": "Red Stained Pipe",
     "block.ezpas.black_stained_pipe": "Black Stained Pipe",
+    "block.ezpas.filtered_pipe": "Filtered Pipe",
     "item.ezpas.pipe_probe": "Pipe Probe"
 }

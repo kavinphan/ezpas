@@ -1,16 +1,18 @@
 package com.kqp.ezpas.init;
 
-import net.fabricmc.api.ModInitializer;
+import com.kqp.ezpas.block.FilteredPipeBlock;
+import com.kqp.ezpas.block.PipeBlock;
+import com.kqp.ezpas.block.entity.pullerpipe.DiamondPullerPipeBlockEntity;
+import com.kqp.ezpas.block.entity.pullerpipe.EnderPullerPipeBlockEntity;
+import com.kqp.ezpas.block.entity.pullerpipe.FilteredPipeBlockEntity;
+import com.kqp.ezpas.block.entity.pullerpipe.GoldPullerPipeBlockEntity;
+import com.kqp.ezpas.block.entity.pullerpipe.IronPullerPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.DiamondPullerPipeBlock;
 import com.kqp.ezpas.block.pullerpipe.EnderPullerPipeBlock;
 import com.kqp.ezpas.block.pullerpipe.GoldPullerPipeBlock;
 import com.kqp.ezpas.block.pullerpipe.IronPullerPipeBlock;
-import com.kqp.ezpas.block.PipeBlock;
-import com.kqp.ezpas.block.entity.pullerpipe.DiamondPullerPipeBlockEntity;
-import com.kqp.ezpas.block.entity.pullerpipe.EnderPullerPipeBlockEntity;
-import com.kqp.ezpas.block.entity.pullerpipe.GoldPullerPipeBlockEntity;
-import com.kqp.ezpas.block.entity.pullerpipe.IronPullerPipeBlockEntity;
 import com.kqp.ezpas.item.PipeProbeItem;
+import net.fabricmc.api.ModInitializer;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.BlockItem;
@@ -42,7 +44,12 @@ public class Ezpas implements ModInitializer {
     public static BlockEntityType<EnderPullerPipeBlockEntity> ENDER_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(ID, "ender_puller_pipe"),
             BlockEntityType.Builder.create(EnderPullerPipeBlockEntity::new, ENDER_PP).build(null));
 
+    public static BlockEntityType<FilteredPipeBlockEntity> FILTERED_PIPE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(ID, "filtered_pipe"),
+            BlockEntityType.Builder.create(FilteredPipeBlockEntity::new, ENDER_PP).build(null));
+
     public static final Block PIPE = register("pipe", new PipeBlock());
+
+    public static final Block FILTERED_PIPE = register("filtered_pipe", new FilteredPipeBlock());
 
     public static final Block[] COLORED_PIPES = new Block[DyeColor.values().length];
 

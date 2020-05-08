@@ -288,10 +288,10 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     /**
      * Returns whether or not the slot and item stack can be extracted from the inventory from a given side.
      *
-     * @param inv The inventory
-     * @param slot The slot
+     * @param inv       The inventory
+     * @param slot      The slot
      * @param itemStack The item stack
-     * @param side The side
+     * @param side      The side
      * @return True if it can be extracted
      */
     private static boolean canExtract(Inventory inv, int slot, ItemStack itemStack, Direction side) {
