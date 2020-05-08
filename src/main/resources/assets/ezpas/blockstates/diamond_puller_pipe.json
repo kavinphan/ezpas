@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "ezpas:block/diamond_puller_pipe",
+      "x": 90
+    },
+    "facing=east": {
+      "model": "ezpas:block/diamond_puller_pipe",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "ezpas:block/diamond_puller_pipe"
+    },
+    "facing=south": {
+      "model": "ezpas:block/diamond_puller_pipe",
+      "y": 180
+    },
+    "facing=up": {
+      "model": "ezpas:block/diamond_puller_pipe",
+      "x": 270
+    },
+    "facing=west": {
+      "model": "ezpas:block/diamond_puller_pipe",
+      "y": 270
+    }
+  }
+}

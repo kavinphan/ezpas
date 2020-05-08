@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "ezpas:block/pipe"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/template_piston",
+  "textures": {
+    "platform": "ezpas:block/puller_pipe_hole",
+    "bottom": "ezpas:block/puller_pipe_hole",
+    "side": "ezpas:block/gold_puller_pipe_side"
+  }
+}

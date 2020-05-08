@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "IGI",
+        "GDG",
+        "IGI"
+    ],
+    "key": {
+        "G": {
+            "item": "minecraft:glass_pane"
+        },
+        "I": {
+            "item": "minecraft:iron_ingot"
+        },
+        "D": {
+            "item": "minecraft:light_gray_dye"
+        }
+    },
+    "result": {
+        "item": "ezpas:light_gray_stained_pipe",
+        "count": 4
+    }
+}

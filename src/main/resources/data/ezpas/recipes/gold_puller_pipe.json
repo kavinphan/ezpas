@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "CHC",
+        "III",
+        "CIC"
+    ],
+    "key": {
+        "C": {
+            "item": "minecraft:cobblestone"
+        },
+        "I": {
+            "item": "minecraft:gold_ingot"
+        },
+        "H": {
+            "item": "minecraft:hopper"
+        }
+    },
+    "result": {
+        "item": "ezpas:gold_puller_pipe",
+        "count": 1
+    }
+}

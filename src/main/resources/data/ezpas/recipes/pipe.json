@@ -1,0 +1,20 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "IGI",
+        "G G",
+        "IGI"
+    ],
+    "key": {
+        "G": {
+            "item": "minecraft:glass_pane"
+        },
+        "I": {
+            "item": "minecraft:iron_ingot"
+        }
+    },
+    "result": {
+        "item": "ezpas:pipe",
+        "count": 4
+    }
+}
