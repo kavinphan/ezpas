@@ -1,4 +1,4 @@
-package com.kqp.ezpas.block.entity;
+package com.kqp.ezpas.block.entity.pullerpipe;
 
 import com.kqp.ezpas.block.PipeBlock;
 import com.kqp.ezpas.init.Ezpas;

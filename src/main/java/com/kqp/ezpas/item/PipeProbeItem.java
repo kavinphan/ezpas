@@ -1,6 +1,6 @@
 package com.kqp.ezpas.item;
 
-import com.kqp.ezpas.block.entity.PullerPipeBlockEntity;
+import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;

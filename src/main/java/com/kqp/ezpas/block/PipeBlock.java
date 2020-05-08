@@ -1,6 +1,7 @@
 package com.kqp.ezpas.block;
 
-import com.kqp.ezpas.block.entity.PullerPipeBlockEntity;
+import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
+import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.block.FabricBlockSettings;
