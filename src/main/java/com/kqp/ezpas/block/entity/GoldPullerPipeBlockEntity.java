@@ -1,6 +1,6 @@
-package net.kqp.ezpas.block.entity;
+package com.kqp.ezpas.block.entity;
 
-import net.kqp.ezpas.init.Ezpas;
+import com.kqp.ezpas.init.Ezpas;
 
 public class GoldPullerPipeBlockEntity extends PullerPipeBlockEntity {
     public GoldPullerPipeBlockEntity() {

@@ -13,11 +13,11 @@
             "item": "minecraft:iron_ingot"
         },
         "D": {
-            "item": "minecraft:lime_dye"
+            "item": "minecraft:pink_dye"
         }
     },
     "result": {
-        "item": "ezpas:lime_stained_pipe",
+        "item": "ezpas:pink_stained_pipe",
         "count": 4
     }
 }

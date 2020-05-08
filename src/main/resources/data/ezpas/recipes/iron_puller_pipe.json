@@ -9,9 +9,6 @@
         "C": {
             "item": "minecraft:cobblestone"
         },
-        "I": {
-            "item": "minecraft:iron_ingot"
-        },
         "H": {
             "item": "minecraft:hopper"
         },

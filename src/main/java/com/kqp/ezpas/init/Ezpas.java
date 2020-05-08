@@ -1,16 +1,16 @@
-package net.kqp.ezpas.init;
+package com.kqp.ezpas.init;
 
 import net.fabricmc.api.ModInitializer;
-import net.kqp.ezpas.block.DiamondPullerPipeBlock;
-import net.kqp.ezpas.block.EnderPullerPipeBlock;
-import net.kqp.ezpas.block.GoldPullerPipeBlock;
-import net.kqp.ezpas.block.IronPullerPipeBlock;
-import net.kqp.ezpas.block.PipeBlock;
-import net.kqp.ezpas.block.entity.DiamondPullerPipeBlockEntity;
-import net.kqp.ezpas.block.entity.EnderPullerPipeBlockEntity;
-import net.kqp.ezpas.block.entity.GoldPullerPipeBlockEntity;
-import net.kqp.ezpas.block.entity.IronPullerPipeBlockEntity;
-import net.kqp.ezpas.item.PipeProbeItem;
+import com.kqp.ezpas.block.DiamondPullerPipeBlock;
+import com.kqp.ezpas.block.EnderPullerPipeBlock;
+import com.kqp.ezpas.block.GoldPullerPipeBlock;
+import com.kqp.ezpas.block.IronPullerPipeBlock;
+import com.kqp.ezpas.block.PipeBlock;
+import com.kqp.ezpas.block.entity.DiamondPullerPipeBlockEntity;
+import com.kqp.ezpas.block.entity.EnderPullerPipeBlockEntity;
+import com.kqp.ezpas.block.entity.GoldPullerPipeBlockEntity;
+import com.kqp.ezpas.block.entity.IronPullerPipeBlockEntity;
+import com.kqp.ezpas.item.PipeProbeItem;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.BlockItem;

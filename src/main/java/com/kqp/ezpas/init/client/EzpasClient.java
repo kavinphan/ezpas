@@ -1,8 +1,8 @@
-package net.kqp.ezpas.init.client;
+package com.kqp.ezpas.init.client;
 
+import com.kqp.ezpas.init.Ezpas;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
-import net.kqp.ezpas.init.Ezpas;
 import net.minecraft.client.render.RenderLayer;
 
 public class EzpasClient implements ClientModInitializer {

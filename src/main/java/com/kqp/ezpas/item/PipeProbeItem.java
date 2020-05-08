@@ -1,6 +1,6 @@
-package net.kqp.ezpas.item;
+package com.kqp.ezpas.item;
 
-import net.kqp.ezpas.block.entity.PullerPipeBlockEntity;
+import com.kqp.ezpas.block.entity.PullerPipeBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
@@ -45,7 +45,7 @@ public class PipeProbeItem extends Item {
                     }
                 }
 
-                context.getPlayer().sendMessage(new LiteralText(sb.toString()), false);
+                context.getPlayer().sendMessage(new LiteralText(sb.toString()));
             }
         }
 

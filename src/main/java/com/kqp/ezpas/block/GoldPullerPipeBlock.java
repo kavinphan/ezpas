@@ -1,6 +1,6 @@
-package net.kqp.ezpas.block;
+package com.kqp.ezpas.block;
 
-import net.kqp.ezpas.block.entity.GoldPullerPipeBlockEntity;
+import com.kqp.ezpas.block.entity.GoldPullerPipeBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.world.BlockView;
 

@@ -1,19 +1,17 @@
-package net.kqp.ezpas.block;
+package com.kqp.ezpas.block;
 
+import com.kqp.ezpas.block.entity.PullerPipeBlockEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.block.FabricBlockSettings;
-import net.kqp.ezpas.block.entity.PullerPipeBlockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
-import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.IWorld;
 
@@ -38,7 +36,7 @@ public class PipeBlock extends Block {
 
             Block block = world.getBlockState(blockPos).getBlock();
 
-            if (block.is(this)) {
+            if (block == this) {
                 for (int i = 0; i < Direction.values().length; i++) {
                     updatePullerPipes(world, blockPos.offset(Direction.values()[i]), searched);
                 }
@@ -53,24 +51,28 @@ public class PipeBlock extends Block {
     }
 
     @Override
-    public VoxelShape getVisualShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
-        return VoxelShapes.empty();
-    }
-
-    @Override
     @Environment(EnvType.CLIENT)
-    public float getAmbientOcclusionLightLevel(BlockState state, BlockView world, BlockPos pos) {
+    public float getAmbientOcclusionLightLevel(BlockState state, BlockView view, BlockPos pos) {
         return 1.0F;
     }
 
     @Override
-    public boolean isTranslucent(BlockState state, BlockView world, BlockPos pos) {
+    public boolean isTranslucent(BlockState state, BlockView view, BlockPos pos) {
         return true;
     }
 
     @Override
-    @Environment(EnvType.CLIENT)
-    public boolean isSideInvisible(BlockState state, BlockState stateFrom, Direction direction) {
-        return stateFrom.isOf(this) || super.isSideInvisible(state, stateFrom, direction);
+    public boolean canSuffocate(BlockState state, BlockView view, BlockPos pos) {
+        return false;
+    }
+
+    @Override
+    public boolean isSimpleFullBlock(BlockState state, BlockView view, BlockPos pos) {
+        return false;
+    }
+
+    @Override
+    public boolean allowsSpawning(BlockState state, BlockView view, BlockPos pos, EntityType<?> type) {
+        return false;
     }
 }
