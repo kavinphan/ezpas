@@ -4,6 +4,6 @@ import net.kqp.ezpas.init.Ezpas;
 
 public class GoldPullerPipeBlockEntity extends PullerPipeBlockEntity {
     public GoldPullerPipeBlockEntity() {
-        super(Ezpas.GOLD_PP_BLOCK_ENTITY, 4, 16);
+        super(Ezpas.GOLD_PP_BLOCK_ENTITY, 3, 1);
     }
 }

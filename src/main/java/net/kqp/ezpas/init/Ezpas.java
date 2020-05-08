@@ -2,10 +2,12 @@ package net.kqp.ezpas.init;
 
 import net.fabricmc.api.ModInitializer;
 import net.kqp.ezpas.block.DiamondPullerPipeBlock;
+import net.kqp.ezpas.block.EnderPullerPipeBlock;
 import net.kqp.ezpas.block.GoldPullerPipeBlock;
 import net.kqp.ezpas.block.IronPullerPipeBlock;
 import net.kqp.ezpas.block.PipeBlock;
 import net.kqp.ezpas.block.entity.DiamondPullerPipeBlockEntity;
+import net.kqp.ezpas.block.entity.EnderPullerPipeBlockEntity;
 import net.kqp.ezpas.block.entity.GoldPullerPipeBlockEntity;
 import net.kqp.ezpas.block.entity.IronPullerPipeBlockEntity;
 import net.kqp.ezpas.item.PipeProbeItem;
@@ -21,9 +23,12 @@ import net.minecraft.util.registry.Registry;
 public class Ezpas implements ModInitializer {
     public static final String ID = "ezpas";
 
+    public static final Item PIPE_PROBE = register("pipe_probe", new PipeProbeItem());
+
     public static final Block IRON_PP = register("iron_puller_pipe", new IronPullerPipeBlock());
     public static final Block GOLD_PP = register("gold_puller_pipe", new GoldPullerPipeBlock());
     public static final Block DIAMOND_PP = register("diamond_puller_pipe", new DiamondPullerPipeBlock());
+    public static final Block ENDER_PP = register("ender_puller_pipe", new EnderPullerPipeBlock());
 
     public static BlockEntityType<IronPullerPipeBlockEntity> IRON_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(ID, "iron_puller_pipe"),
             BlockEntityType.Builder.create(IronPullerPipeBlockEntity::new, IRON_PP).build(null));
@@ -34,11 +39,12 @@ public class Ezpas implements ModInitializer {
     public static BlockEntityType<DiamondPullerPipeBlockEntity> DIAMOND_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(ID, "diamond_puller_pipe"),
             BlockEntityType.Builder.create(DiamondPullerPipeBlockEntity::new, DIAMOND_PP).build(null));
 
+    public static BlockEntityType<EnderPullerPipeBlockEntity> ENDER_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(ID, "ender_puller_pipe"),
+            BlockEntityType.Builder.create(EnderPullerPipeBlockEntity::new, ENDER_PP).build(null));
+
     public static final Block PIPE = register("pipe", new PipeBlock());
 
     public static final Block[] COLORED_PIPES = new Block[DyeColor.values().length];
-
-    public static final Item PIPE_PROBE = register("pipe_probe", new PipeProbeItem());
 
     @Override
     public void onInitialize() {

@@ -4,6 +4,6 @@ import net.kqp.ezpas.init.Ezpas;
 
 public class DiamondPullerPipeBlockEntity extends PullerPipeBlockEntity {
     public DiamondPullerPipeBlockEntity() {
-        super(Ezpas.DIAMOND_PP_BLOCK_ENTITY, 2, 32);
+        super(Ezpas.DIAMOND_PP_BLOCK_ENTITY, 1, 1);
     }
 }

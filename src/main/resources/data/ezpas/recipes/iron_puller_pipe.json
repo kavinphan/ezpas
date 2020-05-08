@@ -2,8 +2,8 @@
     "type": "minecraft:crafting_shaped",
     "pattern": [
         "CHC",
-        "III",
-        "CIC"
+        "CRC",
+        "CHC"
     ],
     "key": {
         "C": {
@@ -14,6 +14,9 @@
         },
         "H": {
             "item": "minecraft:hopper"
+        },
+        "R": {
+            "item": "minecraft:redstone"
         }
     },
     "result": {

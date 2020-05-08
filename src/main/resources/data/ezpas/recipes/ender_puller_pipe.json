@@ -10,14 +10,14 @@
             "item": "minecraft:cobblestone"
         },
         "I": {
-            "item": "minecraft:diamond"
+            "item": "minecraft:ender_eye"
         },
         "P": {
-            "item": "ezpas:iron_puller_pipe"
+            "item": "ezpas:diamond_puller_pipe"
         }
     },
     "result": {
-        "item": "ezpas:diamond_puller_pipe",
+        "item": "ezpas:ender_puller_pipe",
         "count": 2
     }
 }

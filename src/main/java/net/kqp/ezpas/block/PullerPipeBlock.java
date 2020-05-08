@@ -9,7 +9,9 @@ import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.FacingBlock;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.item.ItemStack;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.DirectionProperty;
 import net.minecraft.util.BlockMirror;
@@ -17,6 +19,7 @@ import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.IWorld;
+import net.minecraft.world.World;
 
 public abstract class PullerPipeBlock extends BlockWithEntity {
     public static final DirectionProperty FACING;
@@ -38,6 +41,15 @@ public abstract class PullerPipeBlock extends BlockWithEntity {
         }
 
         return super.getStateForNeighborUpdate(state, direction, newState, world, pos, posFrom);
+    }
+
+    @Override
+    public void onPlaced(World world, BlockPos pos, BlockState state, LivingEntity placer, ItemStack itemStack) {
+        BlockEntity be = world.getBlockEntity(pos);
+
+        if (be instanceof PullerPipeBlockEntity) {
+            ((PullerPipeBlockEntity) be).updateOutputs();
+        }
     }
 
     @Override
