@@ -23,7 +23,7 @@ public class PipeBlock extends Block {
 
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, IWorld world, BlockPos pos, BlockPos posFrom) {
-        PullerPipeBlockEntity.searchForSystem(world, pos, new HashSet(), this);
+        PullerPipeBlockEntity.resetSystem(world, pos, new HashSet(), this);
 
         return super.getStateForNeighborUpdate(state, direction, newState, world, pos, posFrom);
     }

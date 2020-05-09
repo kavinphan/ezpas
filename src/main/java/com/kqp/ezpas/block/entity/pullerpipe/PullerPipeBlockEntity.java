@@ -17,6 +17,7 @@ import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.DefaultedList;
 import net.minecraft.util.Tickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -40,6 +41,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     public final int speed;
     public final int extractionRate;
 
+    public boolean loaded = false;
+
     public PullerPipeBlockEntity(BlockEntityType type, int speed, int extractionRate) {
         super(type);
 
@@ -54,20 +57,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         super.fromTag(tag);
         this.rrCounter = tag.getInt("RoundRobinCounter");
         this.coolDown = tag.getInt("ExtractCoolDown");
-
-        int invCount = tag.getInt("InventoryCount");
-        int[] invTag = tag.getIntArray("InventoryArray");
-
-        inventories.clear();
-
-        for (int i = 0; i < invCount; i++) {
-            int x = invTag[i * 4];
-            int y = invTag[i * 4 + 1];
-            int z = invTag[i * 4 + 2];
-            int direction = invTag[i * 4 + 3];
-
-            inventories.add(new ValidInventory(new BlockPos(x, y, z), Direction.values()[direction]));
-        }
     }
 
     @Override
@@ -77,27 +66,18 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         tag.putInt("RoundRobinCounter", rrCounter);
         tag.putInt("ExtractCoolDown", coolDown);
 
-        tag.putInt("InventoryCount", inventories.size());
-
-        int[] invArray = new int[inventories.size() * 4];
-
-        for (int i = 0; i < inventories.size(); i++) {
-            ValidInventory inv = inventories.get(i);
-
-            invArray[i * 4] = inv.blockPos.getX();
-            invArray[i * 4 + 1] = inv.blockPos.getY();
-            invArray[i * 4 + 2] = inv.blockPos.getZ();
-            invArray[i * 4 + 3] = inv.direction.ordinal();
-        }
-
-        tag.putIntArray("InventoryArray", invArray);
-
         return tag;
     }
 
     @Override
     public void tick() {
         if (!this.world.isClient) {
+            if (!loaded) {
+                this.resetSystem();
+
+                loaded = true;
+            }
+
             if (!this.world.isReceivingRedstonePower(pos)) {
                 if (coolDown <= 0) {
                     if (attemptExtract()) {
@@ -216,7 +196,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     /**
      * Clears the list of connected inventories and updates it by recursively searching connected pipe blocks.
      */
-    public void searchForSystem() {
+    public void resetSystem() {
         inventories.clear();
 
         Direction facing = getFacing();
@@ -360,7 +340,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         return inventory instanceof SidedInventory ? ((SidedInventory) inventory).getInvAvailableSlots(side) : IntStream.range(0, inventory.getInvSize()).toArray();
     }
 
-    public static void searchForSystem(IWorld world, BlockPos blockPos, Set<BlockPos> searched, PipeBlock pipe) {
+    public static void resetSystem(IWorld world, BlockPos blockPos, Set<BlockPos> searched, PipeBlock pipe) {
         if (!searched.contains(blockPos)) {
             searched.add(blockPos);
 
@@ -377,13 +357,13 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                 }
 
                 for (int i = 0; i < Direction.values().length; i++) {
-                    searchForSystem(world, blockPos.offset(Direction.values()[i]), searched, pipe);
+                    resetSystem(world, blockPos.offset(Direction.values()[i]), searched, pipe);
                 }
             } else if (block instanceof PullerPipeBlock) {
                 BlockEntity be = world.getBlockEntity(blockPos);
 
                 if (be instanceof PullerPipeBlockEntity) {
-                    ((PullerPipeBlockEntity) be).searchForSystem();
+                    ((PullerPipeBlockEntity) be).resetSystem();
                 }
             }
         }
@@ -466,6 +446,15 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         @Override
         public int hashCode() {
             return Objects.hash(whitelist, blacklist);
+        }
+
+        public static DefaultedList<ItemStack> toDefaultedList(Set<ComparableItemStack> set) {
+            DefaultedList<ItemStack> list = DefaultedList.ofSize(set.size(), ItemStack.EMPTY);
+            for (ComparableItemStack comparableItemStack : set) {
+                list.add(comparableItemStack.itemStack);
+            }
+            
+            return list;
         }
     }
 
