@@ -4,6 +4,7 @@ import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.text.LiteralText;
 import net.minecraft.util.ActionResult;
@@ -26,15 +27,15 @@ public class PipeProbeItem extends Item {
             BlockEntity be = world.getBlockEntity(pos);
 
             if (be instanceof PullerPipeBlockEntity) {
-                List<PullerPipeBlockEntity.ValidInventory> invList = ((PullerPipeBlockEntity) be).getValidInventories();
+                PullerPipeBlockEntity ppBe = ((PullerPipeBlockEntity) be);
+                List<PullerPipeBlockEntity.ValidInventory> invList = ppBe.getValidInventories();
 
                 StringBuilder sb = new StringBuilder();
 
+                sb.append("Insertion points: \n");
                 if (invList.isEmpty()) {
-                    sb.append("No blocks are connected");
+                    sb.append("None\n");
                 } else {
-                    sb.append("Currently connected to the following blocks: \n");
-
                     for (PullerPipeBlockEntity.ValidInventory inventory : invList) {
                         sb.append(String.format("%s@(%d, %d, %d), %s\n",
                                 world.getBlockState(inventory.blockPos).getBlock().getTranslationKey(),
@@ -42,6 +43,24 @@ public class PipeProbeItem extends Item {
                                 inventory.blockPos.getY(),
                                 inventory.blockPos.getZ(),
                                 inventory.direction));
+                    }
+                }
+
+                sb.append("Whitelisted: \n");
+                if (ppBe.whitelist.isEmpty()) {
+                    sb.append("None\n");
+                } else {
+                    for (ItemStack stack : ppBe.whitelist) {
+                        sb.append(stack.getItem().getTranslationKey() + "\n");
+                    }
+                }
+
+                sb.append("Blacklisted: \n");
+                if (ppBe.blacklist.isEmpty()) {
+                    sb.append("None\n");
+                } else {
+                    for (ItemStack stack : ppBe.blacklist) {
+                        sb.append(stack.getItem().getTranslationKey() + "\n");
                     }
                 }
 

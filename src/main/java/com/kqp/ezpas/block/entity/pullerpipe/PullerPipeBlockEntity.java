@@ -33,8 +33,8 @@ import java.util.stream.IntStream;
 
 public abstract class PullerPipeBlockEntity extends BlockEntity implements Tickable {
     private List<ValidInventory> inventories;
-    private DefaultedList<ItemStack> whitelist;
-    private DefaultedList<ItemStack> blacklist;
+    public DefaultedList<ItemStack> whitelist;
+    public DefaultedList<ItemStack> blacklist;
 
     private int rrCounter;
     public int coolDown;
