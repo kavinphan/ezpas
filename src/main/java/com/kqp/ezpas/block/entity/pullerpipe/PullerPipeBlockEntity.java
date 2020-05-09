@@ -213,10 +213,10 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     /**
      * Recursively searches for connected inventories through matching pipe blocks.
      *
-     * @param blockPos    Current block position to search
-     * @param direction   The direction in which the current block pos was searched from
-     * @param searched    Set of block positions that have already been searched
-     * @param pipeBlock   Type of pipe block this system uses
+     * @param blockPos  Current block position to search
+     * @param direction The direction in which the current block pos was searched from
+     * @param searched  Set of block positions that have already been searched
+     * @param pipeBlock Type of pipe block this system uses
      */
     private void searchPipeBlock(BlockPos blockPos, Direction direction, Set<BlockPos> searched, Block pipeBlock) {
         if (!searched.contains(blockPos)) {
@@ -426,11 +426,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             if (onBlacklist) {
                 return false;
             } else if (!whitelist.isEmpty()) {
-                if (onWhitelist) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return onWhitelist;
             } else {
                 return true;
             }
@@ -453,7 +449,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             for (ComparableItemStack comparableItemStack : set) {
                 list.add(comparableItemStack.itemStack);
             }
-            
+
             return list;
         }
     }

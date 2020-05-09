@@ -55,10 +55,10 @@ public class PipeProbeItem extends Item {
                             whitelistText.append("None");
                         } else {
                             int i = 0;
-                            
+
                             for (PullerPipeBlockEntity.ComparableItemStack itemStack : inventory.filters.whitelist) {
                                 whitelistText.append(new TranslatableText(itemStack.itemStack.getItem().getTranslationKey()));
-                                
+
                                 if (i != inventory.filters.whitelist.size() - 1) {
                                     whitelistText.append(", ");
                                 }

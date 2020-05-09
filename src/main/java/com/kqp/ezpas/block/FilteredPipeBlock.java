@@ -103,6 +103,6 @@ public class FilteredPipeBlock extends BlockWithEntity {
 
     public enum Type {
         WHITELIST,
-        BLACKLIST;
+        BLACKLIST
     }
 }
