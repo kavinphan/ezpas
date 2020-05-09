@@ -40,16 +40,18 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
     public final int speed;
     public final int extractionRate;
+    public final int subTickRate;
 
     public boolean loaded = false;
 
-    public PullerPipeBlockEntity(BlockEntityType type, int speed, int extractionRate) {
+    public PullerPipeBlockEntity(BlockEntityType type, int speed, int extractionRate, int subTickRate) {
         super(type);
 
         inventories = new ArrayList();
 
         this.speed = speed;
         this.extractionRate = extractionRate;
+        this.subTickRate = subTickRate;
     }
 
     @Override
@@ -80,8 +82,12 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
             if (!this.world.isReceivingRedstonePower(pos)) {
                 if (coolDown <= 0) {
-                    if (attemptExtract()) {
-                        coolDown = speed;
+                    for (int i = 0; i < subTickRate; i++) {
+                        if (attemptExtract()) {
+                            coolDown = speed;
+                        } else {
+                            break;
+                        }
                     }
                 } else {
                     coolDown = Math.max(0, coolDown - 1);
