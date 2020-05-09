@@ -1,0 +1,5 @@
+{
+    "variants": {
+        "": { "model": "ezpas:block/filtered_pipe_whitelist" }
+    }
+}

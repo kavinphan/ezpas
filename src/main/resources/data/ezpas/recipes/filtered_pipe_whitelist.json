@@ -1,0 +1,20 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "CCC",
+        "CPC",
+        "CCC"
+    ],
+    "key": {
+        "C": {
+            "item": "minecraft:cobweb"
+        },
+        "I": {
+            "item": "ezpas:pipe"
+        }
+    },
+    "result": {
+        "item": "ezpas:filtered_pipe_whitelist",
+        "count": 1
+    }
+}

@@ -3,7 +3,9 @@
     "block.ezpas.gold_puller_pipe": "Gold Puller Pipe",
     "block.ezpas.diamond_puller_pipe": "Diamond Puller Pipe",
     "block.ezpas.ender_puller_pipe": "Ender Puller Pipe",
+
     "block.ezpas.pipe": "Pipe",
+
     "block.ezpas.white_stained_pipe": "White Stained Pipe",
     "block.ezpas.orange_stained_pipe": "Orange Stained Pipe",
     "block.ezpas.magenta_stained_pipe": "Magenta Stained Pipe",
@@ -20,6 +22,12 @@
     "block.ezpas.green_stained_pipe": "Green Stained Pipe",
     "block.ezpas.red_stained_pipe": "Red Stained Pipe",
     "block.ezpas.black_stained_pipe": "Black Stained Pipe",
-    "block.ezpas.filtered_pipe": "Filtered Pipe",
-    "item.ezpas.pipe_probe": "Pipe Probe"
+
+    "block.ezpas.filtered_pipe_whitelist": "White Filtered Pipe",
+    "block.ezpas.filtered_pipe_blacklist": "Black Filtered Pipe",
+
+    "item.ezpas.pipe_probe": "Pipe Probe",
+
+    "container.ezpas.filtered_pipe_whitelist": "White Filtered Pipe",
+    "container.ezpas.filtered_pipe_blacklist": "Black Filtered Pipe"
 }

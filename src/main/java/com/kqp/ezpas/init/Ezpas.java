@@ -13,6 +13,7 @@ import com.kqp.ezpas.block.pullerpipe.GoldPullerPipeBlock;
 import com.kqp.ezpas.block.pullerpipe.IronPullerPipeBlock;
 import com.kqp.ezpas.item.PipeProbeItem;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.BlockItem;
@@ -20,7 +21,10 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.World;
 
 public class Ezpas implements ModInitializer {
     public static final String ID = "ezpas";
@@ -49,12 +53,21 @@ public class Ezpas implements ModInitializer {
 
     public static final Block PIPE = register("pipe", new PipeBlock());
 
-    public static final Block FILTERED_PIPE = register("filtered_pipe", new FilteredPipeBlock());
+    public static final Block FILTERED_PIPE_WHITELIST = register("filtered_pipe_whitelist", new FilteredPipeBlock(FilteredPipeBlock.Type.WHITELIST));
+    public static final Block FILTERED_PIPE_BLACKLIST = register("filtered_pipe_blacklist", new FilteredPipeBlock(FilteredPipeBlock.Type.BLACKLIST));
 
     public static final Block[] COLORED_PIPES = new Block[DyeColor.values().length];
 
+    public static final Identifier FILTERED_PIPE_ID = new Identifier(ID, "filtered_pipe");
+
     @Override
     public void onInitialize() {
+        ContainerProviderRegistry.INSTANCE.registerFactory(FILTERED_PIPE_ID, (syncId, id, player, buf) -> {
+            final World world = player.world;
+            final BlockPos pos = buf.readBlockPos();
+
+            return world.getBlockState(pos).createContainerFactory(player.world, pos).createMenu(syncId, player.inventory, player);
+        });
     }
 
     private static Block register(String name, Block block) {
