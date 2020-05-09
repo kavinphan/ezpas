@@ -28,6 +28,6 @@
 
     "item.ezpas.pipe_probe": "Pipe Probe",
 
-    "container.ezpas.filtered_pipe_whitelist": "White Filtered Pipe",
-    "container.ezpas.filtered_pipe_blacklist": "Black Filtered Pipe"
+    "container.filtered_pipe_whitelist": "White Filtered Pipe",
+    "container.filtered_pipe_blacklist": "Black Filtered Pipe"
 }

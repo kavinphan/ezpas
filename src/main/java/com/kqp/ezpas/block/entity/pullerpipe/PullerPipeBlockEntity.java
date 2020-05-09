@@ -1,6 +1,8 @@
 package com.kqp.ezpas.block.entity.pullerpipe;
 
+import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
+import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.init.Ezpas;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -10,11 +12,13 @@ import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.ChestBlockEntity;
+import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.DefaultedList;
 import net.minecraft.util.Tickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -29,6 +33,8 @@ import java.util.stream.IntStream;
 
 public abstract class PullerPipeBlockEntity extends BlockEntity implements Tickable {
     private List<ValidInventory> inventories;
+    private DefaultedList<ItemStack> whitelist;
+    private DefaultedList<ItemStack> blacklist;
 
     private int rrCounter;
     public int coolDown;
@@ -36,10 +42,13 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     public final int speed;
     public final int extractionRate;
 
+
     public PullerPipeBlockEntity(BlockEntityType type, int speed, int extractionRate) {
         super(type);
 
         inventories = new ArrayList();
+        whitelist = DefaultedList.of();
+        blacklist = DefaultedList.of();
 
         this.speed = speed;
         this.extractionRate = extractionRate;
@@ -64,6 +73,12 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
             inventories.add(new ValidInventory(new BlockPos(x, y, z), Direction.values()[direction]));
         }
+
+        whitelist.clear();
+        blacklist.clear();
+
+        Inventories.fromTag(tag.getCompound("Whitelist"), whitelist);
+        Inventories.fromTag(tag.getCompound("Blacklist"), blacklist);
     }
 
     @Override
@@ -87,6 +102,14 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         }
 
         tag.putIntArray("InventoryArray", invArray);
+
+        CompoundTag whitelistTag, blacklistTag;
+
+        Inventories.toTag(whitelistTag = new CompoundTag(), whitelist);
+        Inventories.toTag(blacklistTag = new CompoundTag(), blacklist);
+
+        tag.put("Whitelist", whitelistTag);
+        tag.put("Blacklist", blacklistTag);
 
         return tag;
     }
@@ -147,7 +170,9 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             int queryExtractionSlot = availableExtractionSlots[i];
             ItemStack queryStack = from.getInvStack(queryExtractionSlot);
 
-            if (queryStack != ItemStack.EMPTY && canExtract(from, queryExtractionSlot, queryStack, extractionSide)) {
+            if (queryStack != ItemStack.EMPTY
+                    && isStackValidForSystem(queryStack)
+                    && canExtract(from, queryExtractionSlot, queryStack, extractionSide)) {
                 // Only continue if stack is not empty
                 // Query the receiving inventory to see what slot it can be inserted into
                 int queryInsertionSlot = getInsertionSlotForStack(to, queryStack, insertSide);
@@ -206,39 +231,56 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     /**
      * Clears the list of connected inventories and updates it by recursively searching connected pipe blocks.
      */
-    public void updateOutputs() {
+    public void updateSystem() {
         inventories.clear();
+        whitelist.clear();
+        blacklist.clear();
 
         Direction facing = getFacing();
 
         BlockPos immediateBlockPos = this.pos.offset(facing.getOpposite());
-        Block immediateBlock = world.getBlockState(immediateBlockPos).getBlock();
 
         // Init searched set and then add the extracted block position to prevent weird behavior
         Set<BlockPos> searched = new HashSet();
         searched.add(this.pos.offset(facing));
 
-        searchPipeBlock(world, immediateBlockPos, facing.getOpposite(), searched, inventories, immediateBlock instanceof PipeBlock ? immediateBlock : Ezpas.PIPE);
+        searchPipeBlock(immediateBlockPos, facing.getOpposite(), searched, null);
     }
 
     /**
      * Recursively searches for connected inventories through matching pipe blocks.
      *
-     * @param world       World
      * @param blockPos    Current block position to search
      * @param direction   The direction in which the current block pos was searched from
      * @param searched    Set of block positions that have already been searched
-     * @param inventories List of inventories that are part of the system
-     * @param pipeBlock   Type of pipe block (defaults to normal pipe)
+     * @param pipeBlock   Type of pipe block this system uses
      */
-    private static void searchPipeBlock(World world, BlockPos blockPos, Direction direction, Set<BlockPos> searched, List<ValidInventory> inventories, Block pipeBlock) {
+    private void searchPipeBlock(BlockPos blockPos, Direction direction, Set<BlockPos> searched, Block pipeBlock) {
         if (!searched.contains(blockPos)) {
-            if (world.getBlockState(blockPos).getBlock() == pipeBlock) {
+            Block queryBlock = world.getBlockState(blockPos).getBlock();
+
+            if ((pipeBlock != null && queryBlock == pipeBlock) || (pipeBlock == null && queryBlock instanceof PipeBlock) || queryBlock instanceof FilteredPipeBlock) {
                 searched.add(blockPos);
 
                 for (int i = 0; i < Direction.values().length; i++) {
                     Direction searchDirection = Direction.values()[i];
-                    searchPipeBlock(world, blockPos.offset(searchDirection), searchDirection, searched, inventories, pipeBlock);
+
+                    searchPipeBlock(blockPos.offset(searchDirection), searchDirection, searched, pipeBlock);
+                }
+
+                if (queryBlock instanceof FilteredPipeBlock) {
+                    FilteredPipeBlock filteredPipe = (FilteredPipeBlock) queryBlock;
+                    List<ItemStack> addTo = filteredPipe.type == FilteredPipeBlock.Type.WHITELIST ? whitelist : blacklist;
+
+                    FilteredPipeBlockEntity filteredPipeBlockEntity = (FilteredPipeBlockEntity) world.getBlockEntity(blockPos);
+
+                    for (int i = 0; i < filteredPipeBlockEntity.getInvSize(); i++) {
+                        ItemStack filterStack = filteredPipeBlockEntity.getInvStack(i);
+
+                        if (filterStack != ItemStack.EMPTY) {
+                            addTo.add(filterStack);
+                        }
+                    }
                 }
             } else if (getInventoryAt(world, blockPos) != null) {
                 inventories.add(new ValidInventory(blockPos, direction.getOpposite()));
@@ -335,6 +377,34 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
     private static int[] getAvailableSlots(Inventory inventory, Direction side) {
         return inventory instanceof SidedInventory ? ((SidedInventory) inventory).getInvAvailableSlots(side) : IntStream.range(0, inventory.getInvSize()).toArray();
+    }
+
+    private boolean isStackValidForSystem(ItemStack itemStack) {
+        boolean onWhitelist = isStackPartOf(itemStack, whitelist);
+        boolean onBlacklist = isStackPartOf(itemStack, blacklist);
+
+        if (onBlacklist) {
+            return false;
+        } else if (!whitelist.isEmpty()) {
+            if (onWhitelist) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+
+    private static boolean isStackPartOf(ItemStack itemStack, List<ItemStack> list) {
+        for (ItemStack queryStack : list) {
+            // TODO: add tag equality option
+            if (ItemStack.areItemsEqual(itemStack, queryStack)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static class ValidInventory {

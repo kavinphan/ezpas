@@ -9,7 +9,7 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 
 public class FilteredPipeScreen extends ContainerScreen<FilteredPipeContainer> {
-    private static final Identifier TEXTURE = new Identifier(Ezpas.ID, "textures/gui/container/filtered_pipe_whitelist.png");
+    private static final Identifier TEXTURE = new Identifier(Ezpas.ID, "textures/gui/container/filtered_pipe.png");
 
     public FilteredPipeScreen(FilteredPipeContainer container, PlayerInventory playerInventory) {
         super(container, playerInventory, new TranslatableText("container.filtered_pipe_" + container.type.name().toLowerCase()));

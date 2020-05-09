@@ -26,26 +26,26 @@ public class PipeBlock extends Block {
 
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, IWorld world, BlockPos pos, BlockPos posFrom) {
-        updatePullerPipes(world, pos, new HashSet());
+        updateSystem(world, pos, new HashSet());
 
         return super.getStateForNeighborUpdate(state, direction, newState, world, pos, posFrom);
     }
 
-    private void updatePullerPipes(IWorld world, BlockPos blockPos, Set<BlockPos> searched) {
+    private void updateSystem(IWorld world, BlockPos blockPos, Set<BlockPos> searched) {
         if (!searched.contains(blockPos)) {
             searched.add(blockPos);
 
             Block block = world.getBlockState(blockPos).getBlock();
 
-            if (block == this) {
+            if (block == this || block instanceof FilteredPipeBlock) {
                 for (int i = 0; i < Direction.values().length; i++) {
-                    updatePullerPipes(world, blockPos.offset(Direction.values()[i]), searched);
+                    updateSystem(world, blockPos.offset(Direction.values()[i]), searched);
                 }
             } else if (block instanceof PullerPipeBlock) {
                 BlockEntity be = world.getBlockEntity(blockPos);
 
                 if (be instanceof PullerPipeBlockEntity) {
-                    ((PullerPipeBlockEntity) be).updateOutputs();
+                    ((PullerPipeBlockEntity) be).updateSystem();
                 }
             }
         }

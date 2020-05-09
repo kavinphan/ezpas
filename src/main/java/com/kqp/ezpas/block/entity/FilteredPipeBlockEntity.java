@@ -1,8 +1,9 @@
-package com.kqp.ezpas.block.entity.pullerpipe;
+package com.kqp.ezpas.block.entity;
 
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.container.FilteredPipeContainer;
 import com.kqp.ezpas.init.Ezpas;
+import net.minecraft.block.Block;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.container.Container;
 import net.minecraft.entity.player.PlayerInventory;
@@ -12,6 +13,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.DefaultedList;
+
+import java.util.HashSet;
 
 public class FilteredPipeBlockEntity extends LootableContainerBlockEntity {
     public DefaultedList<ItemStack> inventory;
@@ -68,6 +71,38 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity {
         }
 
         return tag;
+    }
+
+    @Override
+    public ItemStack takeInvStack(int slot, int amount) {
+        ItemStack stack = super.takeInvStack(slot, amount);
+        updateSystem();
+
+        return stack;
+    }
+
+    @Override
+    public ItemStack removeInvStack(int slot) {
+        ItemStack stack = super.removeInvStack(slot);
+
+        updateSystem();
+
+        return stack;
+    }
+
+    @Override
+    public void setInvStack(int slot, ItemStack stack) {
+        super.setInvStack(slot, stack);
+
+        updateSystem();
+    }
+
+    public void updateSystem() {
+        Block block = world.getBlockState(pos).getBlock();
+
+        if (block instanceof FilteredPipeBlock) {
+            ((FilteredPipeBlock) block).updateSystem(world, pos, new HashSet());
+        }
     }
 
     private FilteredPipeBlock.Type getFilterType() {

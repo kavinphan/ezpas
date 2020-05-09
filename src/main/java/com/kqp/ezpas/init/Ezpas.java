@@ -2,9 +2,9 @@ package com.kqp.ezpas.init;
 
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
+import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.entity.pullerpipe.DiamondPullerPipeBlockEntity;
 import com.kqp.ezpas.block.entity.pullerpipe.EnderPullerPipeBlockEntity;
-import com.kqp.ezpas.block.entity.pullerpipe.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.entity.pullerpipe.GoldPullerPipeBlockEntity;
 import com.kqp.ezpas.block.entity.pullerpipe.IronPullerPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.DiamondPullerPipeBlock;
@@ -21,7 +21,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
