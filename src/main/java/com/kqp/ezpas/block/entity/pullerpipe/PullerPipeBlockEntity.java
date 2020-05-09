@@ -3,6 +3,7 @@ package com.kqp.ezpas.block.entity.pullerpipe;
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
+import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
 import com.kqp.ezpas.init.Ezpas;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -22,6 +23,7 @@ import net.minecraft.util.DefaultedList;
 import net.minecraft.util.Tickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -413,6 +415,35 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         }
 
         return false;
+    }
+
+    public static void updateSystem(IWorld world, BlockPos blockPos, Set<BlockPos> searched, PipeBlock pipe) {
+        if (!searched.contains(blockPos)) {
+            searched.add(blockPos);
+
+            Block block = world.getBlockState(blockPos).getBlock();
+
+            // Setup checks to see if we should branch from the current block
+            boolean currentPipeCheck = pipe != null && block == pipe;
+            boolean unknownPipeCheck = pipe == null && (block instanceof PipeBlock || block instanceof FilteredPipeBlock);
+
+            if (currentPipeCheck || unknownPipeCheck) {
+                if (unknownPipeCheck && block instanceof PipeBlock) {
+                    // If we don't know the type of the pipe yet and we just found one, set it
+                    pipe = (PipeBlock) block;
+                }
+
+                for (int i = 0; i < Direction.values().length; i++) {
+                    updateSystem(world, blockPos.offset(Direction.values()[i]), searched, pipe);
+                }
+            } else if (block instanceof PullerPipeBlock) {
+                BlockEntity be = world.getBlockEntity(blockPos);
+
+                if (be instanceof PullerPipeBlockEntity) {
+                    ((PullerPipeBlockEntity) be).updateSystem();
+                }
+            }
+        }
     }
 
     public static class ValidInventory {

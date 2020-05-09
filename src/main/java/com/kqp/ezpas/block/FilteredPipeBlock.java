@@ -76,7 +76,7 @@ public class FilteredPipeBlock extends BlockWithEntity {
 
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, IWorld world, BlockPos pos, BlockPos posFrom) {
-        updateSystem(world, pos, new HashSet());
+        PullerPipeBlockEntity.updateSystem(world, pos, new HashSet(), null);
 
         return super.getStateForNeighborUpdate(state, direction, newState, world, pos, posFrom);
     }

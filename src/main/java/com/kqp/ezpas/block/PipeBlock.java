@@ -1,14 +1,12 @@
 package com.kqp.ezpas.block;
 
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
-import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
-import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.math.BlockPos;
@@ -26,29 +24,9 @@ public class PipeBlock extends Block {
 
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, IWorld world, BlockPos pos, BlockPos posFrom) {
-        updateSystem(world, pos, new HashSet());
+        PullerPipeBlockEntity.updateSystem(world, pos, new HashSet(), this);
 
         return super.getStateForNeighborUpdate(state, direction, newState, world, pos, posFrom);
-    }
-
-    private void updateSystem(IWorld world, BlockPos blockPos, Set<BlockPos> searched) {
-        if (!searched.contains(blockPos)) {
-            searched.add(blockPos);
-
-            Block block = world.getBlockState(blockPos).getBlock();
-
-            if (block == this || block instanceof FilteredPipeBlock) {
-                for (int i = 0; i < Direction.values().length; i++) {
-                    updateSystem(world, blockPos.offset(Direction.values()[i]), searched);
-                }
-            } else if (block instanceof PullerPipeBlock) {
-                BlockEntity be = world.getBlockEntity(blockPos);
-
-                if (be instanceof PullerPipeBlockEntity) {
-                    ((PullerPipeBlockEntity) be).updateSystem();
-                }
-            }
-        }
     }
 
     @Override
