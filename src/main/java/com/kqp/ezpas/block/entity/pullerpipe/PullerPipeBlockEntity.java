@@ -117,12 +117,16 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     @Override
     public void tick() {
         if (!this.world.isClient) {
-            if (coolDown <= 0) {
-                if (attemptExtract()) {
-                    coolDown = speed;
+            if (!this.world.isReceivingRedstonePower(pos)) {
+                if (coolDown <= 0) {
+                    if (attemptExtract()) {
+                        coolDown = speed;
+                    }
+                } else {
+                    coolDown = Math.max(0, coolDown - 1);
                 }
             } else {
-                coolDown = Math.max(0, coolDown - 1);
+                coolDown = speed;
             }
         }
     }
