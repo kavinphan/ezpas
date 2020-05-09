@@ -36,8 +36,6 @@ import java.util.stream.IntStream;
 
 public abstract class PullerPipeBlockEntity extends BlockEntity implements Tickable {
     private List<ValidInventory> inventories;
-    public DefaultedList<ItemStack> whitelist;
-    public DefaultedList<ItemStack> blacklist;
 
     private int rrCounter;
     public int coolDown;
@@ -50,8 +48,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         super(type);
 
         inventories = new ArrayList();
-        whitelist = DefaultedList.of();
-        blacklist = DefaultedList.of();
 
         this.speed = speed;
         this.extractionRate = extractionRate;
@@ -76,12 +72,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
             inventories.add(new ValidInventory(new BlockPos(x, y, z), Direction.values()[direction]));
         }
-
-        whitelist.clear();
-        blacklist.clear();
-
-        Inventories.fromTag(tag.getCompound("Whitelist"), whitelist);
-        Inventories.fromTag(tag.getCompound("Blacklist"), blacklist);
     }
 
     @Override
@@ -105,14 +95,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         }
 
         tag.putIntArray("InventoryArray", invArray);
-
-        CompoundTag whitelistTag, blacklistTag;
-
-        Inventories.toTag(whitelistTag = new CompoundTag(), whitelist);
-        Inventories.toTag(blacklistTag = new CompoundTag(), blacklist);
-
-        tag.put("Whitelist", whitelistTag);
-        tag.put("Blacklist", blacklistTag);
 
         return tag;
     }
@@ -389,8 +371,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     private static int[] getAvailableSlots(Inventory inventory, Direction side) {
         return inventory instanceof SidedInventory ? ((SidedInventory) inventory).getInvAvailableSlots(side) : IntStream.range(0, inventory.getInvSize()).toArray();
     }
-
-
 
     public static void updateSystem(IWorld world, BlockPos blockPos, Set<BlockPos> searched, PipeBlock pipe) {
         if (!searched.contains(blockPos)) {
