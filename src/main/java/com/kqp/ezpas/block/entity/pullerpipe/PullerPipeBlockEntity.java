@@ -4,7 +4,6 @@ import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
-import com.kqp.ezpas.init.Ezpas;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ChestBlock;
@@ -13,13 +12,11 @@ import net.minecraft.block.InventoryProvider;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.ChestBlockEntity;
-import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.DefaultedList;
 import net.minecraft.util.Tickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -42,7 +39,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
     public final int speed;
     public final int extractionRate;
-
 
     public PullerPipeBlockEntity(BlockEntityType type, int speed, int extractionRate) {
         super(type);
@@ -129,7 +125,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             Inventory to = getInventoryAt(world, validInventory.blockPos);
 
             if (to != null) {
-                extract(from, to, facing.getOpposite(), validInventory.direction);
+                extract(from, to, facing.getOpposite(), validInventory.direction, validInventory.filters);
 
                 rrCounter++;
 
@@ -146,7 +142,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         return false;
     }
 
-    public void extract(Inventory from, Inventory to, Direction extractionSide, Direction insertSide) {
+    public void extract(Inventory from, Inventory to, Direction extractionSide, Direction insertSide, Filters filters) {
         // First find a stack to extract
         ItemStack extractionStack = null;
         int extractionSlot = -1;
@@ -160,7 +156,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             ItemStack queryStack = from.getInvStack(queryExtractionSlot);
 
             if (queryStack != ItemStack.EMPTY
-                    && isStackValidForSystem(queryStack)
+                    && filters.doesStackPass(queryStack)
                     && canExtract(from, queryExtractionSlot, queryStack, extractionSide)) {
                 // Only continue if stack is not empty
                 // Query the receiving inventory to see what slot it can be inserted into
@@ -220,10 +216,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     /**
      * Clears the list of connected inventories and updates it by recursively searching connected pipe blocks.
      */
-    public void updateSystem() {
+    public void searchForSystem() {
         inventories.clear();
-        whitelist.clear();
-        blacklist.clear();
 
         Direction facing = getFacing();
 
@@ -260,23 +254,19 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
                     searchPipeBlock(blockPos.offset(searchDirection), searchDirection, searched, pipeBlock);
                 }
-
-                if (queryBlock instanceof FilteredPipeBlock) {
-                    FilteredPipeBlock filteredPipe = (FilteredPipeBlock) queryBlock;
-                    List<ItemStack> addTo = filteredPipe.type == FilteredPipeBlock.Type.WHITELIST ? whitelist : blacklist;
-
-                    FilteredPipeBlockEntity filteredPipeBlockEntity = (FilteredPipeBlockEntity) world.getBlockEntity(blockPos);
-
-                    for (int i = 0; i < filteredPipeBlockEntity.getInvSize(); i++) {
-                        ItemStack filterStack = filteredPipeBlockEntity.getInvStack(i);
-
-                        if (filterStack != ItemStack.EMPTY) {
-                            addTo.add(filterStack);
-                        }
-                    }
-                }
             } else if (getInventoryAt(world, blockPos) != null) {
-                inventories.add(new ValidInventory(blockPos, direction.getOpposite()));
+                ValidInventory validInventory = new ValidInventory(blockPos, direction.getOpposite());
+                BlockPos prevPos = blockPos.offset(direction.getOpposite());
+                BlockEntity be = world.getBlockEntity(prevPos);
+
+                if (be instanceof FilteredPipeBlockEntity) {
+                    FilteredPipeBlockEntity filteredPipeBlockEntity = (FilteredPipeBlockEntity) be;
+                    FilteredPipeBlock.Type type = ((FilteredPipeBlock) world.getBlockState(prevPos).getBlock()).type;
+
+                    validInventory.addFrom(filteredPipeBlockEntity, type);
+                }
+
+                inventories.add(validInventory);
             }
         }
     }
@@ -348,9 +338,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     private static int getInsertionSlotForStack(Inventory inv, ItemStack stack, Direction side) {
         int[] availableSlots = getAvailableSlots(inv, side);
 
-        for (int i = 0; i < availableSlots.length; i++) {
-            int slot = availableSlots[i];
-
+        for (int slot : availableSlots) {
             if (inv instanceof SidedInventory) {
                 if (((SidedInventory) inv).canInsertInvStack(slot, stack, side)) {
                     return slot;
@@ -372,7 +360,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         return inventory instanceof SidedInventory ? ((SidedInventory) inventory).getInvAvailableSlots(side) : IntStream.range(0, inventory.getInvSize()).toArray();
     }
 
-    public static void updateSystem(IWorld world, BlockPos blockPos, Set<BlockPos> searched, PipeBlock pipe) {
+    public static void searchForSystem(IWorld world, BlockPos blockPos, Set<BlockPos> searched, PipeBlock pipe) {
         if (!searched.contains(blockPos)) {
             searched.add(blockPos);
 
@@ -389,13 +377,13 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                 }
 
                 for (int i = 0; i < Direction.values().length; i++) {
-                    updateSystem(world, blockPos.offset(Direction.values()[i]), searched, pipe);
+                    searchForSystem(world, blockPos.offset(Direction.values()[i]), searched, pipe);
                 }
             } else if (block instanceof PullerPipeBlock) {
                 BlockEntity be = world.getBlockEntity(blockPos);
 
                 if (be instanceof PullerPipeBlockEntity) {
-                    ((PullerPipeBlockEntity) be).updateSystem();
+                    ((PullerPipeBlockEntity) be).searchForSystem();
                 }
             }
         }
@@ -404,10 +392,24 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     public static class ValidInventory {
         public final BlockPos blockPos;
         public final Direction direction;
+        public final Filters filters;
 
         public ValidInventory(BlockPos blockPos, Direction direction) {
             this.blockPos = blockPos;
             this.direction = direction;
+            this.filters = new Filters();
+        }
+
+        public void addFrom(FilteredPipeBlockEntity filteredPipeBlockEntity, FilteredPipeBlock.Type type) {
+            Set<ComparableItemStack> addTo = type == FilteredPipeBlock.Type.WHITELIST ? filters.whitelist : filters.blacklist;
+
+            for (int i = 0; i < filteredPipeBlockEntity.getInvSize(); i++) {
+                ItemStack queryStack = filteredPipeBlockEntity.getInvStack(i);
+
+                if (!queryStack.isEmpty()) {
+                    addTo.add(new ComparableItemStack(queryStack));
+                }
+            }
         }
 
         @Override
@@ -484,6 +486,11 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         @Override
         public int hashCode() {
             return Objects.hash(itemStack.getTag(), itemStack.getItem().getTranslationKey());
+        }
+
+        @Override
+        public String toString() {
+            return itemStack.toString();
         }
     }
 }

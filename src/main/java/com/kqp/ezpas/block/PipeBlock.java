@@ -15,7 +15,6 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.IWorld;
 
 import java.util.HashSet;
-import java.util.Set;
 
 public class PipeBlock extends Block {
     public PipeBlock() {
@@ -24,7 +23,7 @@ public class PipeBlock extends Block {
 
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, IWorld world, BlockPos pos, BlockPos posFrom) {
-        PullerPipeBlockEntity.updateSystem(world, pos, new HashSet(), this);
+        PullerPipeBlockEntity.searchForSystem(world, pos, new HashSet(), this);
 
         return super.getStateForNeighborUpdate(state, direction, newState, world, pos, posFrom);
     }

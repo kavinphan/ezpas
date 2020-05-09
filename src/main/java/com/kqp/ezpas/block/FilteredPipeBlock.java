@@ -76,7 +76,7 @@ public class FilteredPipeBlock extends BlockWithEntity {
 
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, IWorld world, BlockPos pos, BlockPos posFrom) {
-        PullerPipeBlockEntity.updateSystem(world, pos, new HashSet(), null);
+        PullerPipeBlockEntity.searchForSystem(world, pos, new HashSet(), null);
 
         return super.getStateForNeighborUpdate(state, direction, newState, world, pos, posFrom);
     }
@@ -95,7 +95,7 @@ public class FilteredPipeBlock extends BlockWithEntity {
                 BlockEntity be = world.getBlockEntity(blockPos);
 
                 if (be instanceof PullerPipeBlockEntity) {
-                    ((PullerPipeBlockEntity) be).updateSystem();
+                    ((PullerPipeBlockEntity) be).searchForSystem();
                 }
             }
         }
