@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.Filter;
 import java.util.stream.IntStream;
 
 public abstract class PullerPipeBlockEntity extends BlockEntity implements Tickable {
@@ -389,33 +390,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         return inventory instanceof SidedInventory ? ((SidedInventory) inventory).getInvAvailableSlots(side) : IntStream.range(0, inventory.getInvSize()).toArray();
     }
 
-    private boolean isStackValidForSystem(ItemStack itemStack) {
-        boolean onWhitelist = isStackPartOf(itemStack, whitelist);
-        boolean onBlacklist = isStackPartOf(itemStack, blacklist);
 
-        if (onBlacklist) {
-            return false;
-        } else if (!whitelist.isEmpty()) {
-            if (onWhitelist) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return true;
-        }
-    }
-
-    private static boolean isStackPartOf(ItemStack itemStack, List<ItemStack> list) {
-        for (ItemStack queryStack : list) {
-            // TODO: add tag equality option
-            if (ItemStack.areItemsEqual(itemStack, queryStack)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
 
     public static void updateSystem(IWorld world, BlockPos blockPos, Set<BlockPos> searched, PipeBlock pipe) {
         if (!searched.contains(blockPos)) {
@@ -470,6 +445,65 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             return obj instanceof ValidInventory
                     && blockPos.equals(((ValidInventory) obj).blockPos)
                     && direction.equals(((ValidInventory) obj).direction);
+        }
+    }
+
+    public static class Filters {
+        public final Set<ComparableItemStack> whitelist, blacklist;
+
+        public Filters() {
+            this.whitelist = new HashSet();
+            this.blacklist = new HashSet();
+        }
+
+        public boolean doesStackPass(ItemStack itemStack) {
+            ComparableItemStack comparable = new ComparableItemStack(itemStack);
+            boolean onWhitelist = whitelist.contains(comparable);
+            boolean onBlacklist = blacklist.contains(comparable);
+
+            if (onBlacklist) {
+                return false;
+            } else if (!whitelist.isEmpty()) {
+                if (onWhitelist) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return true;
+            }
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof Filter
+                    && whitelist.equals(((Filters) obj).whitelist)
+                    && blacklist.equals(((Filters) obj).blacklist);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(whitelist, blacklist);
+        }
+    }
+
+    public static class ComparableItemStack {
+        public final ItemStack itemStack;
+
+        public ComparableItemStack(ItemStack itemStack) {
+            this.itemStack = itemStack;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof ComparableItemStack
+                    && ItemStack.areItemsEqual(itemStack, ((ComparableItemStack) obj).itemStack)
+                    && ItemStack.areTagsEqual(itemStack, ((ComparableItemStack) obj).itemStack);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(itemStack.getTag(), itemStack.getItem().getTranslationKey());
         }
     }
 }
