@@ -266,6 +266,10 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             if ((pipeBlock != null && queryBlock == pipeBlock) || (pipeBlock == null && queryBlock instanceof PipeBlock) || queryBlock instanceof FilteredPipeBlock) {
                 searched.add(blockPos);
 
+                if (queryBlock instanceof PipeBlock && pipeBlock == null) {
+                    pipeBlock = queryBlock;
+                }
+
                 for (int i = 0; i < Direction.values().length; i++) {
                     Direction searchDirection = Direction.values()[i];
 
