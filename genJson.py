@@ -1,4 +1,4 @@
-BLOCKS = [
+PIPES = [
     "white_stained_pipe",
     "orange_stained_pipe",
     "magenta_stained_pipe",
@@ -18,22 +18,10 @@ BLOCKS = [
 ]
 
 
-ITEMS = [
-]
-
-
-TOOLS = [
-]
-
-
-BOWS = [
-]
-
-
-modelsDir = "src/main/resources/assets/ezpas/models/"
-itemModelsDir = modelsDir + "item/"
-blockModelsDir = modelsDir + "block/"
 blockstatesDir = "src/main/resources/assets/ezpas/blockstates/"
+modelsDir = "src/main/resources/assets/ezpas/models/"
+blockModelsDir = modelsDir + "block/pipe/"
+itemModelsDir = modelsDir + "item/"
 
 
 def write_json(path, json):
@@ -42,126 +30,70 @@ def write_json(path, json):
     f.close()
 
 
-def block_json(name):
+def bs_json(name):
     return """{{
-    \"parent\": \"block/cube_all\",
-    \"textures\": {{
-        \"all\": \"ezpas:block/{}\"
+  \"multipart\": [
+    {{
+      \"apply\": {{ \"model\": \"ezpas:block/pipe/{}_center\" }}
+    }},
+    {{
+      \"when\": {{ \"north\": true }},
+      \"apply\": {{ \"model\": \"ezpas:block/pipe/{}_side\" }}
+    }},
+    {{
+      \"when\": {{ \"east\": true }},
+      \"apply\": {{ \"model\": \"ezpas:block/pipe/{}_side\", \"y\": 90 }}
+    }},
+    {{
+      \"when\": {{ \"south\": true }},
+      \"apply\": {{ \"model\": \"ezpas:block/pipe/{}_side\", \"y\": 180 }}
+    }},
+    {{
+      \"when\": {{ \"west\": true }},
+      \"apply\": {{ \"model\": \"ezpas:block/pipe/{}_side\", \"y\": 270 }}
+    }},
+    {{
+      \"when\": {{ \"up\": true }},
+      \"apply\": {{ \"model\": \"ezpas:block/pipe/{}_side\", \"x\": 270}}
+    }},
+    {{
+      \"when\": {{ \"down\": true }},
+      \"apply\": {{ \"model\": \"ezpas:block/pipe/{}_side\", \"x\": 90 }}
     }}
+  ]
+}}""".format(name, name, name, name, name, name, name)
+
+
+def pipe_center_json(name):
+    return """{{
+  "parent": "ezpas:block/template/pipe_center",
+  "textures": {{
+    "pipe": "ezpas:block/{}"
+  }}
 }}""".format(name)
 
 
-def item_block_json(name):
+def pipe_side_json(name):
     return """{{
-  \"parent\": \"ezpas:block/{}\"
-}}""".format(name)
-
-
-def blockstate_json(name):
-    return """{{
-    \"variants\": {{
-        \"\": {{ \"model\": \"ezpas:block/{}\" }}
-    }}
+  "parent": "ezpas:block/template/pipe_side",
+  "textures": {{
+    "pipe": "ezpas:block/{}"
+  }}
 }}""".format(name)
 
 
 def item_json(name):
     return """{{
-  \"parent\": \"item/generated\",
-  \"textures\": {{
-    \"layer0\": \"ezpas:item/{}\"
-  }}
+  "parent": "ezpas:block/pipe/{}_center"
 }}""".format(name)
 
 
-def tool_json(name):
-    return """{{
-  \"parent\": \"minecraft:item/handheld\",
-  \"textures\": {{
-    \"layer0\": \"ezpas:item/{}\"
-  }}
-}}""".format(name)
-
-
-def bow_json(name):
-    return """{{
-  \"parent\": \"item/generated\",
-  \"textures\": {{
-    \"layer0\": \"ezpas:item/{}\"
-  }},
-  \"display\": {{
-    \"thirdperson_righthand\": {{
-      \"rotation\": [ -80, 260, -40 ],
-      \"translation\": [ -1, -2, 2.5 ],
-      \"scale\": [ 0.9, 0.9, 0.9 ]
-    }},
-    \"thirdperson_lefthand\": {{
-      \"rotation\": [ -80, -280, 40 ],
-      \"translation\": [ -1, -2, 2.5 ],
-      \"scale\": [ 0.9, 0.9, 0.9 ]
-    }},
-    \"firstperson_righthand\": {{
-      \"rotation\": [ 0, -90, 25 ],
-      \"translation\": [ 1.13, 3.2, 1.13],
-      \"scale\": [ 0.68, 0.68, 0.68 ]
-    }},
-    \"firstperson_lefthand\": {{
-      \"rotation\": [ 0, 90, -25 ],
-      \"translation\": [ 1.13, 3.2, 1.13],
-      \"scale\": [ 0.68, 0.68, 0.68 ]
-    }}
-  }},
-  \"overrides\": [
-    {{
-      \"predicate\": {{
-        \"pulling\": 1
-      }},
-      \"model\": \"ezpas:item/{}_pulling_0\"
-    }},
-    {{
-      \"predicate\": {{
-        \"pulling\": 1,
-        \"pull\": 0.65
-      }},
-      \"model\": \"ezpas:item/{}_pulling_1\"
-    }},
-    {{
-      \"predicate\": {{
-        \"pulling\": 1,
-        \"pull\": 0.9
-      }},
-      \"model\": \"ezpas:item/{}_pulling_2\"
-    }}
-  ]
-}}""".format(name, name, name, name)
-
-
-def write_block(name):
-    write_json("{}{}.json".format(blockModelsDir, name), block_json(name))
-    write_json("{}{}.json".format(itemModelsDir, name), item_block_json(name))
-    write_json("{}{}.json".format(blockstatesDir, name), blockstate_json(name))
-
-
-def write_item(name):
+def write_pipe(name):
+    write_json("{}{}.json".format(blockstatesDir, name), bs_json(name))
+    write_json("{}{}.json".format(blockModelsDir, name), pipe_center_json(name))
+    write_json("{}{}.json".format(blockModelsDir, name), pipe_side_json(name))
     write_json("{}{}.json".format(itemModelsDir, name), item_json(name))
 
 
-def write_tool(name):
-    write_json("{}{}.json".format(itemModelsDir, name), tool_json(name))
-
-
-def write_bow(name):
-    write_json("{}{}.json".format(itemModelsDir, name), bow_json(name))
-
-
-for block in BLOCKS:
-    write_block(block)
-
-for item in ITEMS:
-    write_item(item)
-
-for tool in TOOLS:
-    write_tool(tool)
-
-for bow in BOWS:
-    write_bow(bow)
+for pipe in PIPES:
+    write_pipe(pipe)

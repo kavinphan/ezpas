@@ -274,7 +274,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         }
     }
 
-    private static Inventory getInventoryAt(World world, BlockPos blockPos) {
+    public static Inventory getInventoryAt(World world, BlockPos blockPos) {
         Inventory inventory = null;
         BlockState blockState = world.getBlockState(blockPos);
         Block block = blockState.getBlock();
