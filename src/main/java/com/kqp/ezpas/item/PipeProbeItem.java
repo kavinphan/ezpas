@@ -43,10 +43,11 @@ public class PipeProbeItem extends Item {
                 } else {
                     for (PullerPipeBlockEntity.ValidInventory inventory : invList) {
                         send.accept(new TranslatableText(world.getBlockState(inventory.blockPos).getBlock().getTranslationKey())
-                                .append(String.format("@(%d, %d, %d)",
+                                .append(String.format("@(%d, %d, %d), into %s side",
                                         inventory.blockPos.getX(),
                                         inventory.blockPos.getY(),
-                                        inventory.blockPos.getZ()
+                                        inventory.blockPos.getZ(),
+                                        inventory.direction
                                 ))
                         );
 
