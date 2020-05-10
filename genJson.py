@@ -14,7 +14,10 @@ PIPES = [
     "brown_stained_pipe",
     "green_stained_pipe",
     "red_stained_pipe",
-    "black_stained_pipe"
+    "black_stained_pipe",
+    "filtered_pipe_whitelist",
+    "filtered_pipe_blacklist",
+    "pipe"
 ]
 
 
@@ -90,8 +93,8 @@ def item_json(name):
 
 def write_pipe(name):
     write_json("{}{}.json".format(blockstatesDir, name), bs_json(name))
-    write_json("{}{}.json".format(blockModelsDir, name), pipe_center_json(name))
-    write_json("{}{}.json".format(blockModelsDir, name), pipe_side_json(name))
+    write_json("{}{}_center.json".format(blockModelsDir, name), pipe_center_json(name))
+    write_json("{}{}_side.json".format(blockModelsDir, name), pipe_side_json(name))
     write_json("{}{}.json".format(itemModelsDir, name), item_json(name))
 
 

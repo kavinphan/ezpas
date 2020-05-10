@@ -1,0 +1,6 @@
+{
+  "parent": "ezpas:block/template/pipe_center",
+  "textures": {
+    "pipe": "ezpas:block/white_stained_pipe"
+  }
+}

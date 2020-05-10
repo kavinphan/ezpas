@@ -1,5 +1,31 @@
 {
-    "variants": {
-        "": { "model": "ezpas:block/filtered_pipe_whitelist" }
+  "multipart": [
+    {
+      "apply": { "model": "ezpas:block/pipe/filtered_pipe_whitelist_center" }
+    },
+    {
+      "when": { "north": true },
+      "apply": { "model": "ezpas:block/pipe/filtered_pipe_whitelist_side" }
+    },
+    {
+      "when": { "east": true },
+      "apply": { "model": "ezpas:block/pipe/filtered_pipe_whitelist_side", "y": 90 }
+    },
+    {
+      "when": { "south": true },
+      "apply": { "model": "ezpas:block/pipe/filtered_pipe_whitelist_side", "y": 180 }
+    },
+    {
+      "when": { "west": true },
+      "apply": { "model": "ezpas:block/pipe/filtered_pipe_whitelist_side", "y": 270 }
+    },
+    {
+      "when": { "up": true },
+      "apply": { "model": "ezpas:block/pipe/filtered_pipe_whitelist_side", "x": 270}
+    },
+    {
+      "when": { "down": true },
+      "apply": { "model": "ezpas:block/pipe/filtered_pipe_whitelist_side", "x": 90 }
     }
+  ]
 }
