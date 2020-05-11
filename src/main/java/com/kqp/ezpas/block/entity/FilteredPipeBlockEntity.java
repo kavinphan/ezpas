@@ -2,6 +2,7 @@ package com.kqp.ezpas.block.entity;
 
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.container.FilteredPipeContainer;
+import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
 import com.kqp.ezpas.init.Ezpas;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
@@ -13,6 +14,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.DefaultedList;
+import net.minecraft.util.math.Direction;
 
 import java.util.HashSet;
 
@@ -101,7 +103,7 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity {
         Block block = world.getBlockState(pos).getBlock();
 
         if (block instanceof FilteredPipeBlock) {
-            ((FilteredPipeBlock) block).updateSystem(world, pos, new HashSet());
+            PullerPipeBlockEntity.resetSystem(world, pos, Direction.NORTH, new HashSet());
         }
     }
 

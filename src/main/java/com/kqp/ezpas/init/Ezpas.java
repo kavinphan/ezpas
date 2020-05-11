@@ -1,5 +1,6 @@
 package com.kqp.ezpas.init;
 
+import com.kqp.ezpas.block.ColoredPipeBlock;
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
@@ -86,7 +87,7 @@ public class Ezpas implements ModInitializer {
         for (int i = 0; i < DyeColor.values().length; i++) {
             DyeColor color = DyeColor.values()[i];
 
-            COLORED_PIPES[i] = register(color.getName() + "_stained_pipe", new PipeBlock());
+            COLORED_PIPES[i] = register(color.getName() + "_stained_pipe", new ColoredPipeBlock());
         }
     }
 }

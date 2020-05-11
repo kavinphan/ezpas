@@ -1,5 +1,6 @@
 package com.kqp.ezpas.block.entity.pullerpipe;
 
+import com.kqp.ezpas.block.ColoredPipeBlock;
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
@@ -213,32 +214,36 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         Set<BlockPos> searched = new HashSet();
         searched.add(this.pos.offset(facing));
 
-        searchPipeBlock(immediateBlockPos, facing.getOpposite(), searched, null);
+        searchPipeBlock(immediateBlockPos, facing.getOpposite(), searched);
     }
 
     /**
      * Recursively searches for connected inventories through matching pipe blocks.
+     * <p>
+     * TODO: find a way to combine this with {@link PullerPipeBlockEntity#resetSystem(IWorld, BlockPos, Set)}
      *
      * @param blockPos  Current block position to search
      * @param direction The direction in which the current block pos was searched from
      * @param searched  Set of block positions that have already been searched
-     * @param pipeBlock Type of pipe block this system uses
      */
-    private void searchPipeBlock(BlockPos blockPos, Direction direction, Set<BlockPos> searched, Block pipeBlock) {
+    private void searchPipeBlock(BlockPos blockPos, Direction direction, Set<BlockPos> searched) {
         if (!searched.contains(blockPos)) {
             Block queryBlock = world.getBlockState(blockPos).getBlock();
+            Block prevBlock = world.getBlockState(blockPos.offset(direction.getOpposite())).getBlock();
 
-            if ((pipeBlock != null && queryBlock == pipeBlock) || (pipeBlock == null && queryBlock instanceof PipeBlock) || queryBlock instanceof FilteredPipeBlock) {
+            boolean validPipeBranch = queryBlock instanceof PipeBlock;
+
+            if (prevBlock instanceof ColoredPipeBlock && queryBlock instanceof ColoredPipeBlock) {
+                validPipeBranch = (prevBlock == queryBlock);
+            }
+
+            if (validPipeBranch) {
                 searched.add(blockPos);
-
-                if (queryBlock instanceof PipeBlock && pipeBlock == null) {
-                    pipeBlock = queryBlock;
-                }
 
                 for (int i = 0; i < Direction.values().length; i++) {
                     Direction searchDirection = Direction.values()[i];
 
-                    searchPipeBlock(blockPos.offset(searchDirection), searchDirection, searched, pipeBlock);
+                    searchPipeBlock(blockPos.offset(searchDirection), searchDirection, searched);
                 }
             } else if (getInventoryAt(world, blockPos) != null) {
                 ValidInventory validInventory = new ValidInventory(blockPos, direction.getOpposite());
@@ -346,26 +351,35 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         return inventory instanceof SidedInventory ? ((SidedInventory) inventory).getInvAvailableSlots(side) : IntStream.range(0, inventory.getInvSize()).toArray();
     }
 
-    public static void resetSystem(IWorld world, BlockPos blockPos, Set<BlockPos> searched, PipeBlock pipe) {
+    /**
+     * This method is called when searching for puller pipe blocks to update.
+     *
+     * @param world     World
+     * @param blockPos  BlockPos to search
+     * @param searched  Set of block positions already searched
+     */
+    public static void resetSystem(IWorld world, BlockPos blockPos, Direction direction, Set<BlockPos> searched) {
         if (!searched.contains(blockPos)) {
             searched.add(blockPos);
 
-            Block block = world.getBlockState(blockPos).getBlock();
+            Block queryBlock = world.getBlockState(blockPos).getBlock();
+            Block prevBlock = world.getBlockState(blockPos.offset(direction.getOpposite())).getBlock();
 
-            // Setup checks to see if we should branch from the current block
-            boolean currentPipeCheck = pipe != null && block == pipe;
-            boolean unknownPipeCheck = pipe == null && (block instanceof PipeBlock || block instanceof FilteredPipeBlock);
+            boolean validPipeBranch = queryBlock instanceof PipeBlock;
 
-            if (currentPipeCheck || unknownPipeCheck) {
-                if (unknownPipeCheck && block instanceof PipeBlock) {
-                    // If we don't know the type of the pipe yet and we just found one, set it
-                    pipe = (PipeBlock) block;
-                }
+            if (prevBlock instanceof ColoredPipeBlock && queryBlock instanceof ColoredPipeBlock) {
+                validPipeBranch = (prevBlock == queryBlock);
+            }
 
+            if (validPipeBranch) {
                 for (int i = 0; i < Direction.values().length; i++) {
-                    resetSystem(world, blockPos.offset(Direction.values()[i]), searched, pipe);
+                    Direction searchDirection = Direction.values()[i];
+
+                    resetSystem(world, blockPos.offset(searchDirection), searchDirection, searched);
                 }
-            } else if (block instanceof PullerPipeBlock) {
+            } else if (queryBlock instanceof PullerPipeBlock) {
+                // If we run into a puller block, RESET THE SYSTEM
+
                 BlockEntity be = world.getBlockEntity(blockPos);
 
                 if (be instanceof PullerPipeBlockEntity) {

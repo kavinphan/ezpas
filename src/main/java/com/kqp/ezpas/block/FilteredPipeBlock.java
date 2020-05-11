@@ -1,73 +1,50 @@
 package com.kqp.ezpas.block;
 
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
-import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
-import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
 import com.kqp.ezpas.init.Ezpas;
-import net.fabricmc.fabric.api.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
+import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.EntityContext;
+import net.minecraft.container.NameableContainerFactory;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.sound.BlockSoundGroup;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.AbstractProperty;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.Util;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-public class FilteredPipeBlock extends BlockWithEntity {
-    private final ShapeUtil shapeUtil;
-
+public class FilteredPipeBlock extends PipeBlock implements BlockEntityProvider {
     public final Type type;
 
     public FilteredPipeBlock(Type type) {
-        super(FabricBlockSettings.of(Material.GLASS).strength(0.3F, 0.3F).nonOpaque().sounds(BlockSoundGroup.GLASS).nonOpaque().build());
+        super();
 
         this.type = type;
-
-        this.setDefaultState(this.getStateManager().getDefaultState()
-                .with(PipeBlock.NORTH, false)
-                .with(PipeBlock.EAST, false)
-                .with(PipeBlock.SOUTH, false)
-                .with(PipeBlock.WEST, false)
-                .with(PipeBlock.UP, false)
-                .with(PipeBlock.DOWN, false)
-        );
-
-        this.shapeUtil = new ShapeUtil(this);
     }
 
     @Override
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+    public boolean onBlockAction(BlockState state, World world, BlockPos pos, int type, int data) {
+        super.onBlockAction(state, world, pos, type, data);
+
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+
+        return blockEntity == null ? false : blockEntity.onBlockAction(type, data);
     }
 
     @Override
     public BlockEntity createBlockEntity(BlockView view) {
         return new FilteredPipeBlockEntity();
+    }
+
+    @Override
+    public NameableContainerFactory createContainerFactory(BlockState state, World world, BlockPos pos) {
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+
+        return blockEntity instanceof NameableContainerFactory ? (NameableContainerFactory) blockEntity : null;
     }
 
     @Override
@@ -97,144 +74,8 @@ public class FilteredPipeBlock extends BlockWithEntity {
         return ActionResult.SUCCESS;
     }
 
-    public void updateSystem(IWorld world, BlockPos blockPos, Set<BlockPos> searched) {
-        if (!searched.contains(blockPos)) {
-            searched.add(blockPos);
-
-            Block block = world.getBlockState(blockPos).getBlock();
-
-            if (block == this || block instanceof PipeBlock) {
-                for (int i = 0; i < Direction.values().length; i++) {
-                    updateSystem(world, blockPos.offset(Direction.values()[i]), searched);
-                }
-            } else if (block instanceof PullerPipeBlock) {
-                BlockEntity be = world.getBlockEntity(blockPos);
-
-                if (be instanceof PullerPipeBlockEntity) {
-                    ((PullerPipeBlockEntity) be).resetSystem();
-                }
-            }
-        }
-    }
-
     public enum Type {
         WHITELIST,
         BLACKLIST
-    }
-
-    public AbstractProperty<Boolean> getProperty(Direction facing) {
-        return PipeBlock.PROP_MAP.get(facing);
-    }
-
-    private BlockState makeConnections(World world, BlockPos pos) {
-        Boolean north = isConnectable(world, pos.north(), Direction.SOUTH);
-        Boolean east = isConnectable(world, pos.east(), Direction.WEST);
-        Boolean south = isConnectable(world, pos.south(), Direction.NORTH);
-        Boolean west = isConnectable(world, pos.west(), Direction.EAST);
-        Boolean up = isConnectable(world, pos.up(), Direction.DOWN);
-        Boolean down = isConnectable(world, pos.down(), Direction.UP);
-
-        return this.getDefaultState().with(PipeBlock.NORTH, north).with(PipeBlock.EAST, east)
-                .with(PipeBlock.SOUTH, south).with(PipeBlock.WEST, west).with(PipeBlock.UP, up).with(PipeBlock.DOWN, down);
-    }
-
-    @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, IWorld world, BlockPos pos, BlockPos posFrom) {
-        PullerPipeBlockEntity.resetSystem(world, pos, new HashSet(), null);
-
-        Boolean value = isConnectable(world, posFrom, direction.getOpposite());
-        return state.with(getProperty(direction), value);
-    }
-
-    @Override
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(PipeBlock.NORTH, PipeBlock.EAST, PipeBlock.SOUTH, PipeBlock.WEST, PipeBlock.UP, PipeBlock.DOWN);
-    }
-
-    @Override
-    public BlockState getPlacementState(ItemPlacementContext context) {
-        return makeConnections(context.getWorld(), context.getBlockPos());
-    }
-
-    @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, EntityContext entityContext) {
-        return shapeUtil.getShape(state);
-    }
-
-    private boolean isConnectable(IWorld world, BlockPos pos, Direction dir) {
-        Block block = world.getBlockState(pos).getBlock();
-
-        if (block instanceof PullerPipeBlock) {
-            Direction facing = world.getBlockState(pos).get(PullerPipeBlock.FACING);
-
-            return facing == dir.getOpposite();
-        }
-
-        return block instanceof PipeBlock
-                || block instanceof FilteredPipeBlock
-                || PullerPipeBlockEntity.getInventoryAt((World) world, pos) != null;
-    }
-
-    /**
-     * Thanks Tech Reborn :)
-     * Slightly modified for my purposes, but most of it is thanks to the Tech Reborn peeps.
-     * <p>
-     * Copyright (c) 2020 TechReborn
-     * <p>
-     * Permission is hereby granted, free of charge, to any person obtaining a copy
-     * of this software and associated documentation files (the "Software"), to deal
-     * in the Software without restriction, including without limitation the rights
-     * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-     * copies of the Software, and to permit persons to whom the Software is
-     * furnished to do so, subject to the following conditions:
-     * <p>
-     * The above copyright notice and this permission notice shall be included in all
-     * copies or substantial portions of the Software.
-     * <p>
-     * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-     * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-     * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-     * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-     * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-     * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-     * SOFTWARE.
-     */
-    public final class ShapeUtil {
-
-        private final FilteredPipeBlock filteredPipeBlock;
-        private final HashMap<BlockState, VoxelShape> shapes;
-
-        public ShapeUtil(FilteredPipeBlock filteredPipeBlock) {
-            this.filteredPipeBlock = filteredPipeBlock;
-            this.shapes = createStateShapeMap();
-        }
-
-        private HashMap<BlockState, VoxelShape> createStateShapeMap() {
-            return Util.make(new HashMap<>(), map -> filteredPipeBlock.getStateManager().getStates()
-                    .forEach(state -> map.put(state, getStateShape(state)))
-            );
-        }
-
-        private VoxelShape getStateShape(BlockState state) {
-            final double size = 4;
-            final VoxelShape baseShape = Block.createCuboidShape(size, size, size, 16.0D - size, 16.0D - size, 16.0D - size);
-
-            final List<VoxelShape> connections = new ArrayList<>();
-            for (Direction dir : Direction.values()) {
-                if (state.get(PipeBlock.PROP_MAP.get(dir))) {
-                    double x = dir == Direction.WEST ? 0 : dir == Direction.EAST ? 16D : size;
-                    double z = dir == Direction.NORTH ? 0 : dir == Direction.SOUTH ? 16D : size;
-                    double y = dir == Direction.DOWN ? 0 : dir == Direction.UP ? 16D : size;
-
-                    VoxelShape shape = Block.createCuboidShape(x, y, z, 16.0D - size, 16.0D - size, 16.0D - size);
-                    connections.add(shape);
-                }
-            }
-            return VoxelShapes.union(baseShape, connections.toArray(new VoxelShape[] {}));
-        }
-
-        public VoxelShape getShape(BlockState state) {
-            return shapes.get(state);
-        }
     }
 }

@@ -79,7 +79,7 @@ public class PipeBlock extends Block {
 
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, IWorld world, BlockPos pos, BlockPos posFrom) {
-        PullerPipeBlockEntity.resetSystem(world, pos, new HashSet(), this);
+        PullerPipeBlockEntity.resetSystem(world, pos, direction, new HashSet());
 
         Boolean value = isConnectable(world, posFrom, direction.getOpposite());
         return state.with(getProperty(direction), value);
@@ -100,7 +100,7 @@ public class PipeBlock extends Block {
         return shapeUtil.getShape(state);
     }
 
-    private boolean isConnectable(IWorld world, BlockPos pos, Direction dir) {
+    protected boolean isConnectable(IWorld world, BlockPos pos, Direction dir) {
         Block block = world.getBlockState(pos).getBlock();
 
         if (block instanceof PullerPipeBlock) {
@@ -109,9 +109,7 @@ public class PipeBlock extends Block {
             return facing == dir.getOpposite();
         }
 
-        return block == this
-                || block instanceof FilteredPipeBlock
-                || PullerPipeBlockEntity.getInventoryAt((World) world, pos) != null;
+        return block instanceof PipeBlock || PullerPipeBlockEntity.getInventoryAt((World) world, pos) != null;
     }
 
     /**
