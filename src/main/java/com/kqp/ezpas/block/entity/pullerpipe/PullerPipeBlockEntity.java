@@ -168,7 +168,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             // The amount to extract is the minimum of the extraction rate and the get of the stack to extract
             int amountToExtract = Math.min(extractionRate, extractionStack.getCount());
 
-            if (currentStackInSlot == ItemStack.EMPTY) {
+            if (currentStackInSlot == ItemStack.EMPTY || currentStackInSlot.getCount() == 0) {
                 // If current stack is empty, just replace it
 
                 to.setInvStack(insertionSlot, from.takeInvStack(extractionSlot, amountToExtract));
@@ -219,8 +219,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
     /**
      * Recursively searches for connected inventories through matching pipe blocks.
-     * <p>
-     * TODO: find a way to combine this with {@link PullerPipeBlockEntity#resetSystem(IWorld, BlockPos, Set)}
      *
      * @param blockPos  Current block position to search
      * @param direction The direction in which the current block pos was searched from
@@ -332,12 +330,18 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         for (int slot : availableSlots) {
             if (inv instanceof SidedInventory) {
                 if (((SidedInventory) inv).canInsertInvStack(slot, stack, side)) {
-                    return slot;
+                    ItemStack queryStack = inv.getInvStack(slot);
+
+                    // canInsert doesn't check for item parity
+                    if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0
+                            || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areTagsEqual(queryStack, stack))) {
+                        return slot;
+                    }
                 }
             } else {
                 ItemStack queryStack = inv.getInvStack(slot);
 
-                if (queryStack == ItemStack.EMPTY
+                if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0
                         || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areTagsEqual(queryStack, stack))) {
                     return slot;
                 }
