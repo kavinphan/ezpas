@@ -18,7 +18,7 @@ import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.WorldAccess;
 import net.minecraft.world.World;
 
 public abstract class PullerPipeBlock extends BlockWithEntity {
@@ -33,7 +33,7 @@ public abstract class PullerPipeBlock extends BlockWithEntity {
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, IWorld world, BlockPos pos, BlockPos posFrom) {
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, WorldAccess world, BlockPos pos, BlockPos posFrom) {
         BlockEntity be = world.getBlockEntity(pos);
 
         if (be instanceof PullerPipeBlockEntity) {

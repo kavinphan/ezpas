@@ -6,19 +6,19 @@ import net.fabricmc.fabric.api.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
-import net.minecraft.entity.EntityContext;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.state.StateManager;
-import net.minecraft.state.property.AbstractProperty;
 import net.minecraft.state.property.BooleanProperty;
+import net.minecraft.state.property.Property;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.WorldAccess;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -61,7 +61,7 @@ public class PipeBlock extends Block {
         this.shapeUtil = new ShapeUtil(this);
     }
 
-    public AbstractProperty<Boolean> getProperty(Direction facing) {
+    public Property<Boolean> getProperty(Direction facing) {
         return PROP_MAP.get(facing);
     }
 
@@ -78,7 +78,7 @@ public class PipeBlock extends Block {
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, IWorld world, BlockPos pos, BlockPos posFrom) {
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, WorldAccess world, BlockPos pos, BlockPos posFrom) {
         PullerPipeBlockEntity.resetSystem(world, pos, direction, new HashSet());
 
         Boolean value = isConnectable(world, posFrom, direction.getOpposite());
@@ -96,11 +96,11 @@ public class PipeBlock extends Block {
     }
 
     @Override
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, EntityContext entityContext) {
+    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
         return shapeUtil.getShape(state);
     }
 
-    protected boolean isConnectable(IWorld world, BlockPos pos, Direction dir) {
+    protected boolean isConnectable(WorldAccess world, BlockPos pos, Direction dir) {
         Block block = world.getBlockState(pos).getBlock();
 
         if (block instanceof PullerPipeBlock) {

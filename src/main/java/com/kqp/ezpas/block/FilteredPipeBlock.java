@@ -6,9 +6,10 @@ import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.container.NameableContainerFactory;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
@@ -16,6 +17,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 
 public class FilteredPipeBlock extends PipeBlock implements BlockEntityProvider {
     public final Type type;
@@ -27,37 +29,35 @@ public class FilteredPipeBlock extends PipeBlock implements BlockEntityProvider 
     }
 
     @Override
-    public boolean onBlockAction(BlockState state, World world, BlockPos pos, int type, int data) {
-        super.onBlockAction(state, world, pos, type, data);
-
-        BlockEntity blockEntity = world.getBlockEntity(pos);
-
-        return blockEntity == null ? false : blockEntity.onBlockAction(type, data);
-    }
-
-    @Override
     public BlockEntity createBlockEntity(BlockView view) {
         return new FilteredPipeBlockEntity();
     }
 
     @Override
-    public NameableContainerFactory createContainerFactory(BlockState state, World world, BlockPos pos) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
+    public boolean onSyncedBlockEvent(BlockState state, World world, BlockPos pos, int type, int data) {
+        super.onSyncedBlockEvent(state, world, pos, type, data);
 
-        return blockEntity instanceof NameableContainerFactory ? (NameableContainerFactory) blockEntity : null;
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        return blockEntity == null ? false : blockEntity.onSyncedBlockEvent(type, data);
     }
 
     @Override
-    public void onBlockRemoved(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
-        if (state.getBlock() != newState.getBlock()) {
+    public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        return blockEntity instanceof NamedScreenHandlerFactory ? (NamedScreenHandlerFactory) blockEntity : null;
+    }
+
+    @Override
+    public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
+        if (state.getBlock() != state.getBlock()) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
 
             if (blockEntity instanceof Inventory) {
-                ItemScatterer.spawn(world, pos, (Inventory) blockEntity);
-                world.updateHorizontalAdjacent(pos, this);
+                ItemScatterer.spawn((World) world, pos, (Inventory) blockEntity);
+                world.updateNeighbors(pos, state.getBlock());
             }
 
-            super.onBlockRemoved(state, world, pos, newState, moved);
+            super.onBroken(world, pos, state);
         }
     }
 
@@ -67,7 +67,7 @@ public class FilteredPipeBlock extends PipeBlock implements BlockEntityProvider 
             BlockEntity be = world.getBlockEntity(pos);
 
             if (be instanceof FilteredPipeBlockEntity) {
-                ContainerProviderRegistry.INSTANCE.openContainer(Ezpas.FILTERED_PIPE_ID, player, buf -> buf.writeBlockPos(pos));
+                ((ServerPlayerEntity) player).openHandledScreen((FilteredPipeBlockEntity) be);
             }
         }
 

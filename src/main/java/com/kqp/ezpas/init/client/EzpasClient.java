@@ -1,12 +1,11 @@
 package com.kqp.ezpas.init.client;
 
-import com.kqp.ezpas.block.container.FilteredPipeContainer;
+import com.kqp.ezpas.block.container.FilteredPipeScreenHandler;
 import com.kqp.ezpas.client.screen.FilteredPipeScreen;
 import com.kqp.ezpas.init.Ezpas;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
-import net.fabricmc.fabric.api.client.screen.ScreenProviderRegistry;
-import net.minecraft.client.MinecraftClient;
+import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
 import net.minecraft.client.render.RenderLayer;
 
 public class EzpasClient implements ClientModInitializer {
@@ -20,8 +19,6 @@ public class EzpasClient implements ClientModInitializer {
             BlockRenderLayerMap.INSTANCE.putBlock(Ezpas.COLORED_PIPES[i], RenderLayer.getTranslucent());
         }
 
-        ScreenProviderRegistry.INSTANCE.<FilteredPipeContainer>registerFactory(Ezpas.FILTERED_PIPE_ID, (container) ->
-                new FilteredPipeScreen(container, MinecraftClient.getInstance().player.inventory)
-        );
+        ScreenRegistry.<FilteredPipeScreenHandler, FilteredPipeScreen>register(Ezpas.FILTERED_PIPE_SCREEN_HANDLER_TYPE, (screenHandler, inv, text) -> new FilteredPipeScreen(screenHandler, inv));
     }
 }

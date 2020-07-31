@@ -6,6 +6,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.text.LiteralText;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
@@ -32,7 +33,10 @@ public class PipeProbeItem extends Item {
                 PullerPipeBlockEntity ppBe = ((PullerPipeBlockEntity) be);
                 List<PullerPipeBlockEntity.ValidInventory> invList = ppBe.getValidInventories();
 
-                Consumer<Text> send = context.getPlayer()::sendMessage;
+                Consumer<Text> send = (text) -> {
+                    context.getPlayer().sendMessage(text, false);
+                };
+
                 Consumer<String> sendText = (string) -> {
                     send.accept(new LiteralText(string));
                 };
@@ -51,7 +55,7 @@ public class PipeProbeItem extends Item {
                                 ))
                         );
 
-                        Text whitelistText = new LiteralText("Whitelist: ");
+                        MutableText whitelistText = new LiteralText("Whitelist: ");
                         if (inventory.filters.whitelist.isEmpty()) {
                             whitelistText.append("None");
                         } else {
@@ -69,7 +73,7 @@ public class PipeProbeItem extends Item {
                         }
                         send.accept(whitelistText);
 
-                        Text blacklistText = new LiteralText("Blacklist: ");
+                        MutableText blacklistText = new LiteralText("Blacklist: ");
                         if (inventory.filters.blacklist.isEmpty()) {
                             blacklistText.append("None");
                         } else {

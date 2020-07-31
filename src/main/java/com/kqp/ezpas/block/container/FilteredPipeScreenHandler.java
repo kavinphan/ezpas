@@ -1,27 +1,28 @@
 package com.kqp.ezpas.block.container;
 
 import com.kqp.ezpas.block.FilteredPipeBlock;
-import net.minecraft.container.Container;
-import net.minecraft.container.Slot;
+import com.kqp.ezpas.init.Ezpas;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.slot.Slot;
 
-public class FilteredPipeContainer extends Container {
+public class FilteredPipeScreenHandler extends ScreenHandler {
     public PlayerInventory playerInventory;
     public Inventory inventory;
     public FilteredPipeBlock.Type type;
 
-    public FilteredPipeContainer(int syncId, PlayerInventory playerInventory, Inventory inventory, FilteredPipeBlock.Type type) {
-        super(null, syncId);
+    public FilteredPipeScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, FilteredPipeBlock.Type type) {
+        super(Ezpas.FILTERED_PIPE_SCREEN_HANDLER_TYPE, syncId);
 
         this.playerInventory = playerInventory;
         this.inventory = inventory;
         this.type = type;
 
-        checkContainerSize(inventory, 9);
-        inventory.onInvOpen(playerInventory.player);
+        checkSize(inventory, 9);
+        inventory.onOpen(playerInventory.player);
 
         int i;
         int j;
@@ -46,7 +47,7 @@ public class FilteredPipeContainer extends Container {
 
     @Override
     public boolean canUse(PlayerEntity player) {
-        return this.inventory.canPlayerUseInv(player);
+        return this.inventory.canPlayerUse(player);
     }
 
     @Override
@@ -59,11 +60,11 @@ public class FilteredPipeContainer extends Container {
 
             newStack = originalStack.copy();
 
-            if (invSlot < this.inventory.getInvSize()) {
-                if (!this.insertItem(originalStack, this.inventory.getInvSize(), this.slots.size(), true)) {
+            if (invSlot < this.inventory.size()) {
+                if (!this.insertItem(originalStack, this.inventory.size(), this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.insertItem(originalStack, 0, this.inventory.getInvSize(), false)) {
+            } else if (!this.insertItem(originalStack, 0, this.inventory.size(), false)) {
                 return ItemStack.EMPTY;
             }
 

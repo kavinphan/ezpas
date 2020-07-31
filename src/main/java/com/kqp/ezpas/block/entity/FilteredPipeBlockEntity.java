@@ -1,24 +1,28 @@
 package com.kqp.ezpas.block.entity;
 
 import com.kqp.ezpas.block.FilteredPipeBlock;
-import com.kqp.ezpas.block.container.FilteredPipeContainer;
+import com.kqp.ezpas.block.container.FilteredPipeScreenHandler;
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
 import com.kqp.ezpas.init.Ezpas;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
-import net.minecraft.container.Container;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
-import net.minecraft.util.DefaultedList;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.Direction;
 
 import java.util.HashSet;
 
-public class FilteredPipeBlockEntity extends LootableContainerBlockEntity {
+public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implements ExtendedScreenHandlerFactory {
     public DefaultedList<ItemStack> inventory;
 
     public FilteredPipeBlockEntity() {
@@ -28,13 +32,8 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity {
     }
 
     @Override
-    public int getInvSize() {
+    public int size() {
         return 9;
-    }
-
-    @Override
-    protected DefaultedList<ItemStack> getInvStackList() {
-        return this.inventory;
     }
 
     @Override
@@ -48,16 +47,17 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity {
     }
 
     @Override
-    protected Container createContainer(int syncId, PlayerInventory playerInventory) {
-        return new FilteredPipeContainer(syncId, playerInventory, this,
+    protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory) {
+        System.out.println("CREATING SCREEN HANDLER!");
+        return new FilteredPipeScreenHandler(syncId, playerInventory, this,
                 getFilterType());
     }
 
     @Override
-    public void fromTag(CompoundTag tag) {
-        super.fromTag(tag);
+    public void fromTag(BlockState bs, CompoundTag tag) {
+        super.fromTag(bs, tag);
 
-        this.inventory = DefaultedList.ofSize(this.getInvSize(), ItemStack.EMPTY);
+        this.inventory = DefaultedList.ofSize(this.size(), ItemStack.EMPTY);
 
         if (!this.deserializeLootTable(tag)) {
             Inventories.fromTag(tag, this.inventory);
@@ -76,16 +76,16 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity {
     }
 
     @Override
-    public ItemStack takeInvStack(int slot, int amount) {
-        ItemStack stack = super.takeInvStack(slot, amount);
+    public ItemStack removeStack(int slot, int amount) {
+        ItemStack stack = super.removeStack(slot, amount);
         updateSystem();
 
         return stack;
     }
 
     @Override
-    public ItemStack removeInvStack(int slot) {
-        ItemStack stack = super.removeInvStack(slot);
+    public ItemStack removeStack(int slot) {
+        ItemStack stack = super.removeStack(slot);
 
         updateSystem();
 
@@ -93,10 +93,15 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity {
     }
 
     @Override
-    public void setInvStack(int slot, ItemStack stack) {
-        super.setInvStack(slot, stack);
+    public void setStack(int slot, ItemStack stack) {
+        super.setStack(slot, stack);
 
         updateSystem();
+    }
+
+    @Override
+    protected DefaultedList<ItemStack> getInvStackList() {
+        return this.inventory;
     }
 
     public void updateSystem() {
@@ -109,5 +114,10 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity {
 
     private FilteredPipeBlock.Type getFilterType() {
         return ((FilteredPipeBlock) this.world.getBlockState(this.pos).getBlock()).type;
+    }
+
+    @Override
+    public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
+        buf.writeBlockPos(this.pos);
     }
 }

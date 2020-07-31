@@ -18,11 +18,11 @@ import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.DefaultedList;
 import net.minecraft.util.Tickable;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.WorldAccess;
 import net.minecraft.world.World;
 
 import java.util.ArrayList;
@@ -56,8 +56,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     }
 
     @Override
-    public void fromTag(CompoundTag tag) {
-        super.fromTag(tag);
+    public void fromTag(BlockState bs, CompoundTag tag) {
+        super.fromTag(bs, tag);
         this.rrCounter = tag.getInt("RoundRobinCounter");
         this.coolDown = tag.getInt("ExtractCoolDown");
     }
@@ -103,7 +103,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         Direction facing = getFacing();
         Inventory from = getInventoryAt(world, this.pos.offset(facing));
 
-        if (from != null && !from.isInvEmpty() && !inventories.isEmpty()) {
+        if (from != null && !from.isEmpty() && !inventories.isEmpty()) {
             if (rrCounter >= inventories.size()) {
                 rrCounter = 0;
             }
@@ -140,7 +140,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
         for (int i = 0; i < availableExtractionSlots.length; i++) {
             int queryExtractionSlot = availableExtractionSlots[i];
-            ItemStack queryStack = from.getInvStack(queryExtractionSlot);
+            ItemStack queryStack = from.getStack(queryExtractionSlot);
 
             if (queryStack != ItemStack.EMPTY
                     && filters.doesStackPass(queryStack)
@@ -163,7 +163,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
         // Continue if all fields are valid
         if (extractionStack != null && extractionSlot != -1 && insertionSlot != -1) {
-            ItemStack currentStackInSlot = to.getInvStack(insertionSlot);
+            ItemStack currentStackInSlot = to.getStack(insertionSlot);
 
             // The amount to extract is the minimum of the extraction rate and the get of the stack to extract
             int amountToExtract = Math.min(extractionRate, extractionStack.getCount());
@@ -171,7 +171,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             if (currentStackInSlot == ItemStack.EMPTY) {
                 // If current stack is empty, just replace it
 
-                to.setInvStack(insertionSlot, from.takeInvStack(extractionSlot, amountToExtract));
+                to.setStack(insertionSlot, from.removeStack(extractionSlot, amountToExtract));
             } else {
                 // Calculate the new amount if the extraction and insertion goes through
                 int newInsertionStackCount = currentStackInSlot.getCount() + amountToExtract;
@@ -220,7 +220,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     /**
      * Recursively searches for connected inventories through matching pipe blocks.
      * <p>
-     * TODO: find a way to combine this with {@link PullerPipeBlockEntity#resetSystem(IWorld, BlockPos, Set)}
+     * TODO: find a way to combine this with {@link PullerPipeBlockEntity#resetSystem(WorldAccess, BlockPos, Direction, Set)}
      *
      * @param blockPos  Current block position to search
      * @param direction The direction in which the current block pos was searched from
@@ -272,10 +272,10 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     }
 
     private static void sanitizeSlot(Inventory inv, int slot) {
-        ItemStack stackInSlot = inv.getInvStack(slot);
+        ItemStack stackInSlot = inv.getStack(slot);
 
         if (stackInSlot.getItem() == Items.AIR || stackInSlot.getCount() == 0) {
-            inv.setInvStack(slot, ItemStack.EMPTY);
+            inv.setStack(slot, ItemStack.EMPTY);
         }
     }
 
@@ -312,7 +312,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
      */
     private static boolean canExtract(Inventory inv, int slot, ItemStack itemStack, Direction side) {
         if (inv instanceof SidedInventory) {
-            return ((SidedInventory) inv).canExtractInvStack(slot, itemStack, side);
+            return ((SidedInventory) inv).canExtract(slot, itemStack, side);
         } else {
             return true;
         }
@@ -331,11 +331,11 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
         for (int slot : availableSlots) {
             if (inv instanceof SidedInventory) {
-                if (((SidedInventory) inv).canInsertInvStack(slot, stack, side)) {
+                if (((SidedInventory) inv).canInsert(slot, stack, side)) {
                     return slot;
                 }
             } else {
-                ItemStack queryStack = inv.getInvStack(slot);
+                ItemStack queryStack = inv.getStack(slot);
 
                 if (queryStack == ItemStack.EMPTY
                         || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areTagsEqual(queryStack, stack))) {
@@ -348,7 +348,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     }
 
     private static int[] getAvailableSlots(Inventory inventory, Direction side) {
-        return inventory instanceof SidedInventory ? ((SidedInventory) inventory).getInvAvailableSlots(side) : IntStream.range(0, inventory.getInvSize()).toArray();
+        return inventory instanceof SidedInventory ? ((SidedInventory) inventory).getAvailableSlots(side) : IntStream.range(0, inventory.size()).toArray();
     }
 
     /**
@@ -358,7 +358,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
      * @param blockPos  BlockPos to search
      * @param searched  Set of block positions already searched
      */
-    public static void resetSystem(IWorld world, BlockPos blockPos, Direction direction, Set<BlockPos> searched) {
+    public static void resetSystem(WorldAccess world, BlockPos blockPos, Direction direction, Set<BlockPos> searched) {
         if (!searched.contains(blockPos)) {
             searched.add(blockPos);
 
@@ -403,8 +403,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         public void addFrom(FilteredPipeBlockEntity filteredPipeBlockEntity, FilteredPipeBlock.Type type) {
             Set<ComparableItemStack> addTo = type == FilteredPipeBlock.Type.WHITELIST ? filters.whitelist : filters.blacklist;
 
-            for (int i = 0; i < filteredPipeBlockEntity.getInvSize(); i++) {
-                ItemStack queryStack = filteredPipeBlockEntity.getInvStack(i);
+            for (int i = 0; i < filteredPipeBlockEntity.size(); i++) {
+                ItemStack queryStack = filteredPipeBlockEntity.getStack(i);
 
                 if (!queryStack.isEmpty()) {
                     addTo.add(new ComparableItemStack(queryStack));

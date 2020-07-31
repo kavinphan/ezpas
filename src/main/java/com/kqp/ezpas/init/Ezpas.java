@@ -3,6 +3,7 @@ package com.kqp.ezpas.init;
 import com.kqp.ezpas.block.ColoredPipeBlock;
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
+import com.kqp.ezpas.block.container.FilteredPipeScreenHandler;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.entity.pullerpipe.DiamondPullerPipeBlockEntity;
 import com.kqp.ezpas.block.entity.pullerpipe.EnderPullerPipeBlockEntity;
@@ -14,12 +15,13 @@ import com.kqp.ezpas.block.pullerpipe.GoldPullerPipeBlock;
 import com.kqp.ezpas.block.pullerpipe.IronPullerPipeBlock;
 import com.kqp.ezpas.item.PipeProbeItem;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
+import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -36,19 +38,19 @@ public class Ezpas implements ModInitializer {
     public static final Block DIAMOND_PP = register("diamond_puller_pipe", new DiamondPullerPipeBlock());
     public static final Block ENDER_PP = register("ender_puller_pipe", new EnderPullerPipeBlock());
 
-    public static BlockEntityType<IronPullerPipeBlockEntity> IRON_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(ID, "iron_puller_pipe"),
+    public static BlockEntityType<IronPullerPipeBlockEntity> IRON_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("iron_puller_pipe"),
             BlockEntityType.Builder.create(IronPullerPipeBlockEntity::new, IRON_PP).build(null));
 
-    public static BlockEntityType<GoldPullerPipeBlockEntity> GOLD_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(ID, "gold_puller_pipe"),
+    public static BlockEntityType<GoldPullerPipeBlockEntity> GOLD_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("gold_puller_pipe"),
             BlockEntityType.Builder.create(GoldPullerPipeBlockEntity::new, GOLD_PP).build(null));
 
-    public static BlockEntityType<DiamondPullerPipeBlockEntity> DIAMOND_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(ID, "diamond_puller_pipe"),
+    public static BlockEntityType<DiamondPullerPipeBlockEntity> DIAMOND_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("diamond_puller_pipe"),
             BlockEntityType.Builder.create(DiamondPullerPipeBlockEntity::new, DIAMOND_PP).build(null));
 
-    public static BlockEntityType<EnderPullerPipeBlockEntity> ENDER_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(ID, "ender_puller_pipe"),
+    public static BlockEntityType<EnderPullerPipeBlockEntity> ENDER_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("ender_puller_pipe"),
             BlockEntityType.Builder.create(EnderPullerPipeBlockEntity::new, ENDER_PP).build(null));
 
-    public static BlockEntityType<FilteredPipeBlockEntity> FILTERED_PIPE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, new Identifier(ID, "filtered_pipe"),
+    public static BlockEntityType<FilteredPipeBlockEntity> FILTERED_PIPE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("filtered_pipe"),
             BlockEntityType.Builder.create(FilteredPipeBlockEntity::new, ENDER_PP).build(null));
 
     public static final Block PIPE = register("pipe", new PipeBlock());
@@ -58,29 +60,33 @@ public class Ezpas implements ModInitializer {
 
     public static final Block[] COLORED_PIPES = new Block[DyeColor.values().length];
 
-    public static final Identifier FILTERED_PIPE_ID = new Identifier(ID, "filtered_pipe");
+    public static final ScreenHandlerType<FilteredPipeScreenHandler> FILTERED_PIPE_SCREEN_HANDLER_TYPE =
+            ScreenHandlerRegistry.registerExtended(id("filtered_pipe"), (syncId, inv, buf) -> {
+                final World world = inv.player.world;
+                final BlockPos pos = buf.readBlockPos();
+
+                return (FilteredPipeScreenHandler) world.getBlockState(pos).createScreenHandlerFactory(world, pos).createMenu(syncId, inv, inv.player);
+            });
 
     @Override
     public void onInitialize() {
-        ContainerProviderRegistry.INSTANCE.registerFactory(FILTERED_PIPE_ID, (syncId, id, player, buf) -> {
-            final World world = player.world;
-            final BlockPos pos = buf.readBlockPos();
-
-            return world.getBlockState(pos).createContainerFactory(player.world, pos).createMenu(syncId, player.inventory, player);
-        });
     }
 
     private static Block register(String name, Block block) {
-        Registry.BLOCK.add(new Identifier(ID, name), block);
-        Registry.ITEM.add(new Identifier(ID, name), new BlockItem(block, new Item.Settings().group(ItemGroup.REDSTONE)));
+        Registry.register(Registry.BLOCK, id(name), block);
+        Registry.register(Registry.ITEM, id(name), new BlockItem(block, new Item.Settings().group(ItemGroup.REDSTONE)));
 
         return block;
     }
 
     private static Item register(String name, Item item) {
-        Registry.ITEM.add(new Identifier(ID, name), item);
+        Registry.register(Registry.ITEM, id(name), item);
 
         return item;
+    }
+
+    public static Identifier id(String path) {
+        return new Identifier(ID, path);
     }
 
     static {
