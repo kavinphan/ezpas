@@ -10,6 +10,13 @@ archivesBaseName = project.archives_base_name
 version = project.mod_version
 group = project.maven_group
 
+repositories {
+	maven {
+		name = "Modmuss50"
+		url = "https://maven.modmuss50.me/"
+	}
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:1.16.1"
 	mappings "net.fabricmc:yarn:1.16.1+build.21:v2"
@@ -17,6 +24,9 @@ dependencies {
 
 	//Fabric api
 	modImplementation "net.fabricmc.fabric-api:fabric-api:0.16.0+build.384-1.16.1"
+
+	// Testing
+	// modImplementation "TechReborn:TechReborn-1.16:3.4.5+build.88"
 }
 
 processResources {
