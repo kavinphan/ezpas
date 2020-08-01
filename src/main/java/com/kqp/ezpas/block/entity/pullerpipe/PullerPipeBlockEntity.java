@@ -328,22 +328,24 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         int[] availableSlots = getAvailableSlots(inv, side);
 
         for (int slot : availableSlots) {
-            if (inv instanceof SidedInventory) {
-                if (((SidedInventory) inv).canInsertInvStack(slot, stack, side)) {
+            if (inv.isValidInvStack(slot, stack)) {
+                if (inv instanceof SidedInventory) {
+                    if (((SidedInventory) inv).canInsertInvStack(slot, stack, side)) {
+                        ItemStack queryStack = inv.getInvStack(slot);
+
+                        // canInsert doesn't check for item parity
+                        if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0
+                                || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areTagsEqual(queryStack, stack))) {
+                            return slot;
+                        }
+                    }
+                } else {
                     ItemStack queryStack = inv.getInvStack(slot);
 
-                    // canInsert doesn't check for item parity
                     if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0
                             || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areTagsEqual(queryStack, stack))) {
                         return slot;
                     }
-                }
-            } else {
-                ItemStack queryStack = inv.getInvStack(slot);
-
-                if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0
-                        || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areTagsEqual(queryStack, stack))) {
-                    return slot;
                 }
             }
         }
