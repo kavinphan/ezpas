@@ -79,7 +79,7 @@ public class PipeBlock extends Block {
 
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, WorldAccess world, BlockPos pos, BlockPos posFrom) {
-        PullerPipeBlockEntity.resetSystem(world, pos, direction, new HashSet());
+        PullerPipeBlockEntity.updatePullerPipes(world, pos, direction, new HashSet());
 
         Boolean value = isConnectable(world, posFrom, direction.getOpposite());
         return state.with(getProperty(direction), value);

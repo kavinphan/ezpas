@@ -108,7 +108,7 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
         Block block = world.getBlockState(pos).getBlock();
 
         if (block instanceof FilteredPipeBlock) {
-            PullerPipeBlockEntity.resetSystem(world, pos, Direction.NORTH, new HashSet());
+            PullerPipeBlockEntity.updatePullerPipes(world, pos, Direction.NORTH, new HashSet());
         }
     }
 

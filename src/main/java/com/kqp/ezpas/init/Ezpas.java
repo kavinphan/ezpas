@@ -5,14 +5,8 @@ import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
 import com.kqp.ezpas.block.container.FilteredPipeScreenHandler;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
-import com.kqp.ezpas.block.entity.pullerpipe.DiamondPullerPipeBlockEntity;
-import com.kqp.ezpas.block.entity.pullerpipe.EnderPullerPipeBlockEntity;
-import com.kqp.ezpas.block.entity.pullerpipe.GoldPullerPipeBlockEntity;
-import com.kqp.ezpas.block.entity.pullerpipe.IronPullerPipeBlockEntity;
-import com.kqp.ezpas.block.pullerpipe.DiamondPullerPipeBlock;
-import com.kqp.ezpas.block.pullerpipe.EnderPullerPipeBlock;
-import com.kqp.ezpas.block.pullerpipe.GoldPullerPipeBlock;
-import com.kqp.ezpas.block.pullerpipe.IronPullerPipeBlock;
+import com.kqp.ezpas.block.entity.pullerpipe.*;
+import com.kqp.ezpas.block.pullerpipe.*;
 import com.kqp.ezpas.item.PipeProbeItem;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
@@ -36,6 +30,7 @@ public class Ezpas implements ModInitializer {
     public static final Block IRON_PP = register("iron_puller_pipe", new IronPullerPipeBlock());
     public static final Block GOLD_PP = register("gold_puller_pipe", new GoldPullerPipeBlock());
     public static final Block DIAMOND_PP = register("diamond_puller_pipe", new DiamondPullerPipeBlock());
+    public static final Block NETHERITE_PP = register("netherite_puller_pipe", new NetheritePullerPipeBlock());
     public static final Block ENDER_PP = register("ender_puller_pipe", new EnderPullerPipeBlock());
 
     public static BlockEntityType<IronPullerPipeBlockEntity> IRON_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("iron_puller_pipe"),
@@ -46,6 +41,9 @@ public class Ezpas implements ModInitializer {
 
     public static BlockEntityType<DiamondPullerPipeBlockEntity> DIAMOND_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("diamond_puller_pipe"),
             BlockEntityType.Builder.create(DiamondPullerPipeBlockEntity::new, DIAMOND_PP).build(null));
+
+    public static BlockEntityType<NetheritePullerPipeBlockEntity> NETHERITE_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("netherite_puller_pipe"),
+            BlockEntityType.Builder.create(NetheritePullerPipeBlockEntity::new, DIAMOND_PP).build(null));
 
     public static BlockEntityType<EnderPullerPipeBlockEntity> ENDER_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("ender_puller_pipe"),
             BlockEntityType.Builder.create(EnderPullerPipeBlockEntity::new, ENDER_PP).build(null));

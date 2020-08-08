@@ -76,7 +76,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     public void tick() {
         if (!this.world.isClient) {
             if (!loaded) {
-                this.resetSystem();
+                this.updatePullerPipes();
 
                 loaded = true;
             }
@@ -203,7 +203,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     /**
      * Clears the list of connected inventories and updates it by recursively searching connected pipe blocks.
      */
-    public void resetSystem() {
+    public void updatePullerPipes() {
         inventories.clear();
 
         Direction facing = getFacing();
@@ -214,19 +214,17 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         Set<BlockPos> searched = new HashSet();
         searched.add(this.pos.offset(facing));
 
-        searchPipeBlock(immediateBlockPos, facing.getOpposite(), searched);
+        buildInventoryGraph(immediateBlockPos, facing.getOpposite(), searched);
     }
 
     /**
-     * Recursively searches for connected inventories through matching pipe blocks.
-     * <p>
-     * TODO: find a way to combine this with {@link PullerPipeBlockEntity#resetSystem(WorldAccess, BlockPos, Direction, Set)}
+     * Uses BFS to search for
      *
      * @param blockPos  Current block position to search
      * @param direction The direction in which the current block pos was searched from
      * @param searched  Set of block positions that have already been searched
      */
-    private void searchPipeBlock(BlockPos blockPos, Direction direction, Set<BlockPos> searched) {
+    private void buildInventoryGraph(BlockPos blockPos, Direction direction, Set<BlockPos> searched) {
         if (!searched.contains(blockPos)) {
             Block queryBlock = world.getBlockState(blockPos).getBlock();
             Block prevBlock = world.getBlockState(blockPos.offset(direction.getOpposite())).getBlock();
@@ -243,7 +241,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                 for (int i = 0; i < Direction.values().length; i++) {
                     Direction searchDirection = Direction.values()[i];
 
-                    searchPipeBlock(blockPos.offset(searchDirection), searchDirection, searched);
+                    buildInventoryGraph(blockPos.offset(searchDirection), searchDirection, searched);
                 }
             } else if (getInventoryAt(world, blockPos) != null) {
                 ValidInventory validInventory = new ValidInventory(blockPos, direction.getOpposite());
@@ -359,13 +357,14 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     }
 
     /**
-     * This method is called when searching for puller pipe blocks to update.
+     * This method is called when a pipe is placed/updated.
+     * Traverses the pipe graph and updates any puller pipes found.
      *
      * @param world     World
      * @param blockPos  BlockPos to search
      * @param searched  Set of block positions already searched
      */
-    public static void resetSystem(WorldAccess world, BlockPos blockPos, Direction direction, Set<BlockPos> searched) {
+    public static void updatePullerPipes(WorldAccess world, BlockPos blockPos, Direction direction, Set<BlockPos> searched) {
         if (!searched.contains(blockPos)) {
             searched.add(blockPos);
 
@@ -382,7 +381,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                 for (int i = 0; i < Direction.values().length; i++) {
                     Direction searchDirection = Direction.values()[i];
 
-                    resetSystem(world, blockPos.offset(searchDirection), searchDirection, searched);
+                    updatePullerPipes(world, blockPos.offset(searchDirection), searchDirection, searched);
                 }
             } else if (queryBlock instanceof PullerPipeBlock) {
                 // If we run into a puller block, RESET THE SYSTEM
@@ -390,7 +389,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                 BlockEntity be = world.getBlockEntity(blockPos);
 
                 if (be instanceof PullerPipeBlockEntity) {
-                    ((PullerPipeBlockEntity) be).resetSystem();
+                    ((PullerPipeBlockEntity) be).updatePullerPipes();
                 }
             }
         }
