@@ -48,7 +48,6 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
 
     @Override
     protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory) {
-        System.out.println("CREATING SCREEN HANDLER!");
         return new FilteredPipeScreenHandler(syncId, playerInventory, this,
                 getFilterType());
     }
@@ -112,7 +111,7 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
         }
     }
 
-    private FilteredPipeBlock.Type getFilterType() {
+    public FilteredPipeBlock.Type getFilterType() {
         return ((FilteredPipeBlock) this.world.getBlockState(this.pos).getBlock()).type;
     }
 

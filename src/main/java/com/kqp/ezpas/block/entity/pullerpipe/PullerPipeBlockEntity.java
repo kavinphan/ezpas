@@ -5,6 +5,7 @@ import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
+import com.kqp.ezpas.filter.Filter;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ChestBlock;
@@ -19,18 +20,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Tickable;
-import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.logging.Filter;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public abstract class PullerPipeBlockEntity extends BlockEntity implements Tickable {
@@ -129,7 +125,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         return false;
     }
 
-    public void extract(Inventory from, Inventory to, Direction extractionSide, Direction insertSide, Filters filters) {
+    public void extract(Inventory from, Inventory to, Direction extractionSide, Direction insertSide, List<Filter> filters) {
         // First find a stack to extract
         ItemStack extractionStack = null;
         int extractionSlot = -1;
@@ -143,7 +139,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             ItemStack queryStack = from.getStack(queryExtractionSlot);
 
             if (queryStack != ItemStack.EMPTY
-                    && filters.doesStackPass(queryStack)
+                    && stackPasses(queryStack, filters)
                     && canExtract(from, queryExtractionSlot, queryStack, extractionSide)) {
                 // Only continue if stack is not empty
                 // Query the receiving inventory to see what slot it can be inserted into
@@ -210,52 +206,59 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
         BlockPos immediateBlockPos = this.pos.offset(facing.getOpposite());
 
-        // Init searched set and then add the extracted block position to prevent weird behavior
-        Set<BlockPos> searched = new HashSet();
-        searched.add(this.pos.offset(facing));
+        // Create initial path to prevent back-tracking
+        Path initPath = new Path();
+        initPath.visited.add(this.pos);
 
-        buildInventoryGraph(immediateBlockPos, facing.getOpposite(), searched);
+        buildInventoryGraph(immediateBlockPos, facing.getOpposite(), initPath);
     }
 
     /**
-     * Uses BFS to search for
-     *
-     * @param blockPos  Current block position to search
-     * @param direction The direction in which the current block pos was searched from
-     * @param searched  Set of block positions that have already been searched
+     * Recursively build list of inventories.
      */
-    private void buildInventoryGraph(BlockPos blockPos, Direction direction, Set<BlockPos> searched) {
-        if (!searched.contains(blockPos)) {
+    private void buildInventoryGraph(BlockPos blockPos, Direction direction, Path path) {
+        if (!path.visited.contains(blockPos)) {
             Block queryBlock = world.getBlockState(blockPos).getBlock();
             Block prevBlock = world.getBlockState(blockPos.offset(direction.getOpposite())).getBlock();
 
             boolean validPipeBranch = queryBlock instanceof PipeBlock;
-
             if (prevBlock instanceof ColoredPipeBlock && queryBlock instanceof ColoredPipeBlock) {
                 validPipeBranch = (prevBlock == queryBlock);
             }
 
             if (validPipeBranch) {
-                searched.add(blockPos);
+                Path newPath = Path.from(path);
+                newPath.visited.add(blockPos);
+
+                if (queryBlock instanceof FilteredPipeBlock) {
+                    BlockEntity be = world.getBlockEntity(blockPos);
+
+                    if (be instanceof FilteredPipeBlockEntity) {
+                        newPath.filters.add(new Filter((FilteredPipeBlockEntity) be));
+                    }
+                }
 
                 for (int i = 0; i < Direction.values().length; i++) {
                     Direction searchDirection = Direction.values()[i];
 
-                    buildInventoryGraph(blockPos.offset(searchDirection), searchDirection, searched);
+                    buildInventoryGraph(blockPos.offset(searchDirection), searchDirection, newPath);
                 }
             } else if (getInventoryAt(world, blockPos) != null) {
-                ValidInventory validInventory = new ValidInventory(blockPos, direction.getOpposite());
-                BlockPos prevPos = blockPos.offset(direction.getOpposite());
-                BlockEntity be = world.getBlockEntity(prevPos);
+                ValidInventory newInventory = new ValidInventory(blockPos, direction.getOpposite(), path.filters, path.visited.size());
 
-                if (be instanceof FilteredPipeBlockEntity) {
-                    FilteredPipeBlockEntity filteredPipeBlockEntity = (FilteredPipeBlockEntity) be;
-                    FilteredPipeBlock.Type type = ((FilteredPipeBlock) world.getBlockState(prevPos).getBlock()).type;
+                // Check if there's a similar path already
+                int index = inventories.indexOf(newInventory);
 
-                    validInventory.addFrom(filteredPipeBlockEntity, type);
+                if (index != -1) {
+                    ValidInventory similarInventory = inventories.get(index);
+
+                    // If the new inventory is a shorter path, replace the old one
+                    if (newInventory.distance < similarInventory.distance) {
+                        inventories.set(index, newInventory);
+                    }
+                } else {
+                    inventories.add(newInventory);
                 }
-
-                inventories.add(validInventory);
             }
         }
     }
@@ -357,6 +360,23 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     }
 
     /**
+     * Returns true if an itemstack is able to pass through the list of filters.
+     *
+     * @param itemStack
+     * @param filters
+     * @return
+     */
+    private static boolean stackPasses(ItemStack itemStack, List<Filter> filters) {
+        for (Filter filter : filters) {
+            if (!filter.stackPasses(itemStack)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * This method is called when a pipe is placed/updated.
      * Traverses the pipe graph and updates any puller pipes found.
      *
@@ -398,110 +418,45 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     public static class ValidInventory {
         public final BlockPos blockPos;
         public final Direction direction;
-        public final Filters filters;
+        public final List<Filter> filters;
+        public final int distance;
 
-        public ValidInventory(BlockPos blockPos, Direction direction) {
+        public ValidInventory(BlockPos blockPos, Direction direction, List<Filter> filters, int distance) {
             this.blockPos = blockPos;
             this.direction = direction;
-            this.filters = new Filters();
-        }
-
-        public void addFrom(FilteredPipeBlockEntity filteredPipeBlockEntity, FilteredPipeBlock.Type type) {
-            Set<ComparableItemStack> addTo = type == FilteredPipeBlock.Type.WHITELIST ? filters.whitelist : filters.blacklist;
-
-            for (int i = 0; i < filteredPipeBlockEntity.size(); i++) {
-                ItemStack queryStack = filteredPipeBlockEntity.getStack(i);
-
-                if (!queryStack.isEmpty()) {
-                    addTo.add(new ComparableItemStack(queryStack));
-                }
-            }
-        }
-
-        @Override
-        public String toString() {
-            return blockPos.toString() + ", into " + direction;
+            this.filters = filters;
+            this.distance = distance;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(blockPos.getX(), blockPos.getY(), blockPos.getZ(), direction.ordinal());
+            return Objects.hash(blockPos.getX(), blockPos.getY(), blockPos.getZ(), direction.ordinal(), filters);
         }
 
         @Override
         public boolean equals(Object obj) {
             return obj instanceof ValidInventory
                     && blockPos.equals(((ValidInventory) obj).blockPos)
-                    && direction.equals(((ValidInventory) obj).direction);
+                    && direction.equals(((ValidInventory) obj).direction)
+                    && filters.equals(((ValidInventory) obj).filters);
         }
     }
 
-    public static class Filters {
-        public final Set<ComparableItemStack> whitelist, blacklist;
+    public static class Path {
+        public final Set<BlockPos> visited;
+        public final List<Filter> filters;
 
-        public Filters() {
-            this.whitelist = new HashSet();
-            this.blacklist = new HashSet();
+        public Path() {
+            this.visited = new HashSet();
+            this.filters = new ArrayList();
         }
 
-        public boolean doesStackPass(ItemStack itemStack) {
-            ComparableItemStack comparable = new ComparableItemStack(itemStack);
-            boolean onWhitelist = whitelist.contains(comparable);
-            boolean onBlacklist = blacklist.contains(comparable);
+        public static Path from(Path oldPath) {
+            Path newPath = new Path();
+            newPath.visited.addAll(oldPath.visited);
+            newPath.filters.addAll(oldPath.filters);
 
-            if (onBlacklist) {
-                return false;
-            } else if (!whitelist.isEmpty()) {
-                return onWhitelist;
-            } else {
-                return true;
-            }
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof Filter
-                    && whitelist.equals(((Filters) obj).whitelist)
-                    && blacklist.equals(((Filters) obj).blacklist);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(whitelist, blacklist);
-        }
-
-        public static DefaultedList<ItemStack> toDefaultedList(Set<ComparableItemStack> set) {
-            DefaultedList<ItemStack> list = DefaultedList.ofSize(set.size(), ItemStack.EMPTY);
-            for (ComparableItemStack comparableItemStack : set) {
-                list.add(comparableItemStack.itemStack);
-            }
-
-            return list;
-        }
-    }
-
-    public static class ComparableItemStack {
-        public final ItemStack itemStack;
-
-        public ComparableItemStack(ItemStack itemStack) {
-            this.itemStack = itemStack;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof ComparableItemStack
-                    && ItemStack.areItemsEqual(itemStack, ((ComparableItemStack) obj).itemStack)
-                    && ItemStack.areTagsEqual(itemStack, ((ComparableItemStack) obj).itemStack);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(itemStack.getTag(), itemStack.getItem().getTranslationKey());
-        }
-
-        @Override
-        public String toString() {
-            return itemStack.toString();
+            return newPath;
         }
     }
 }
