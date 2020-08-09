@@ -15,6 +15,10 @@ repositories {
 		name = "Modmuss50"
 		url = "https://maven.modmuss50.me/"
 	}
+
+	maven {
+		url = "https://www.cursemaven.com"
+	}
 }
 
 dependencies {
@@ -27,6 +31,7 @@ dependencies {
 
 	// Testing
 	// modImplementation "TechReborn:TechReborn-1.16:3.4.5+build.88"
+	// modImplementation "curse.maven:rei:3026783"
 }
 
 processResources {
