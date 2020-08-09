@@ -1,9 +1,9 @@
 {
     "type": "minecraft:crafting_shaped",
     "pattern": [
-        "ODO",
-        "OEO",
-        "ODO"
+        "CDC",
+        "CEC",
+        "CDC"
     ],
     "key": {
         "C": {

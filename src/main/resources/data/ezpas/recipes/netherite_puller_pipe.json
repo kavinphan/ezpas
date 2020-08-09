@@ -1,13 +1,13 @@
 {
     "type": "minecraft:crafting_shaped",
     "pattern": [
-        "ODO",
-        "ONO",
-        "ODO"
+        "CDC",
+        "CNC",
+        "CDC"
     ],
     "key": {
-        "O": {
-            "item": "minecraft:obsidian"
+        "C": {
+            "item": "minecraft:cobblestone"
         },
         "N": {
             "item": "minecraft:netherite_ingot"
