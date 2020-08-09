@@ -5,13 +5,10 @@ import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
-import com.kqp.ezpas.filter.Filter;
+import com.kqp.ezpas.pipe.InsertionPoint;
+import com.kqp.ezpas.pipe.filter.Filter;
 import com.kqp.ezpas.init.Ezpas;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ChestBlock;
-import net.minecraft.block.FacingBlock;
-import net.minecraft.block.InventoryProvider;
+import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.ChestBlockEntity;
@@ -23,16 +20,17 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Tickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.world.WorldAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 
 import java.util.*;
 import java.util.stream.IntStream;
 
 public abstract class PullerPipeBlockEntity extends BlockEntity implements Tickable {
-    private List<ValidInventory> inventories;
+    private List<PrioritizedList<InsertionPoint>> prioritizedInsertionPoints;
 
     private int rrCounter;
+    private int currentPriority;
     public int coolDown;
 
     public final int speed;
@@ -41,12 +39,10 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
     public boolean loaded = false;
 
-    private boolean loopedinCurrentPriority = false;
-
     public PullerPipeBlockEntity(BlockEntityType type, int speed, int extractionRate, int subTickRate) {
         super(type);
 
-        inventories = new ArrayList();
+        prioritizedInsertionPoints = new ArrayList();
 
         this.speed = speed;
         this.extractionRate = extractionRate;
@@ -58,6 +54,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         super.fromTag(bs, tag);
         this.rrCounter = tag.getInt("RoundRobinCounter");
         this.coolDown = tag.getInt("ExtractCoolDown");
+        this.currentPriority = tag.getInt("CurrentPriority");
     }
 
     @Override
@@ -66,6 +63,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
         tag.putInt("RoundRobinCounter", rrCounter);
         tag.putInt("ExtractCoolDown", coolDown);
+        tag.putInt("CurrentPriority", currentPriority);
 
         return tag;
     }
@@ -95,51 +93,77 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         }
     }
 
+    /**
+     * This is the main extraction method.
+     * It starts by checking all the previous prioritized lists
+     * to see if any of them have opened up. If none are available,
+     * it goes to the current priority. If it can't successfully
+     * make an extraction, it exits the method and bumps the priority.
+     */
     public void doExtraction() {
+        if (prioritizedInsertionPoints.isEmpty()) {
+            return;
+        }
+
+        // Fix any broken indices
+        if (currentPriority >= prioritizedInsertionPoints.size()) {
+            currentPriority = 0;
+        }
+        if (rrCounter >= prioritizedInsertionPoints.get(currentPriority).size()) {
+            rrCounter = 0;
+        }
+
         Direction facing = getFacing();
         Inventory from = getInventoryAt(world, this.pos.offset(facing));
 
         // Check that the extracting inventory still exists
-        if (from != null && !from.isEmpty() && !inventories.isEmpty()) {
-            int currentPriority = inventories.get(rrCounter).priority;
-
-            // Before trying the current counter, check if previous inventories can be inserted to
-            for (int i = 0; i < rrCounter; i++) {
-                ValidInventory validInventory = inventories.get(i);
-
-                // Break if reached our current priority
-                if (validInventory.priority == currentPriority) {
+        if (from != null && !from.isEmpty() && !prioritizedInsertionPoints.isEmpty()) {
+            // Before going to current stuff, check previous inventories
+            for (PrioritizedList<InsertionPoint> prioritizedList : prioritizedInsertionPoints) {
+                if (prioritizedList.priority == currentPriority) {
                     break;
                 }
 
-                // If we can extract to it, set the round robin counter
-                boolean extracted = extract(from, getInventoryAt(world, validInventory.blockPos), facing.getOpposite(), validInventory.direction, validInventory.filters);
-                if (extracted) {
-                    rrCounter = i;
-                    incrementRrCounter();
+                for (int i = 0; i < prioritizedList.size(); i++) {
+                    InsertionPoint inventory = prioritizedList.get(i);
+                    boolean extracted = extract(from, getInventoryAt(world, inventory.blockPos), facing.getOpposite(), inventory.direction, inventory.filters);
 
-                    return;
+                    // If we're able to extract from a non-current priority inventory,
+                    // Reset our current priority and counter
+                    if (extracted) {
+                        currentPriority = prioritizedList.priority;
+                        rrCounter = i;
+                        incrementRrCounter();
+
+                        return;
+                    }
                 }
             }
 
-            ValidInventory validInventory = inventories.get(rrCounter);
-            boolean extracted = extract(from, getInventoryAt(world, validInventory.blockPos), facing.getOpposite(), validInventory.direction, validInventory.filters);
+            PrioritizedList<InsertionPoint> insertionPoints = prioritizedInsertionPoints.get(currentPriority);
+            int attempts = 0;
+            boolean extracted = false;
 
-            if (extracted) {
+            while (!extracted && attempts < insertionPoints.size()) {
+                InsertionPoint insertionPoint = insertionPoints.get(rrCounter);
+                extracted = extract(from, getInventoryAt(world, insertionPoint.blockPos), facing.getOpposite(), insertionPoint.direction, insertionPoint.filters);
                 incrementRrCounter();
+                attempts++;
             }
 
-            int nextPriority = inventories.get(rrCounter).priority;
+            if (!extracted) {
+                currentPriority++;
 
-            if (currentPriority != nextPriority) {
-
+                if (currentPriority >= prioritizedInsertionPoints.size()) {
+                    currentPriority = 0;
+                }
             }
         }
     }
 
     private void incrementRrCounter() {
         rrCounter++;
-        if (rrCounter >= inventories.size()) {
+        if (rrCounter >= prioritizedInsertionPoints.get(currentPriority).size()) {
             rrCounter = 0;
         }
     }
@@ -233,8 +257,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
      * Clears the list of connected inventories and updates it by recursively searching connected pipe blocks.
      */
     public void updatePullerPipes() {
-        inventories.clear();
-
         Direction facing = getFacing();
 
         BlockPos immediateBlockPos = this.pos.offset(facing.getOpposite());
@@ -243,15 +265,43 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         Path initPath = new Path();
         initPath.visited.add(this.pos);
 
-        buildInventoryGraph(immediateBlockPos, facing.getOpposite(), initPath);
+        // Create list of inventories
+        List<InsertionPoint> newInventories = new ArrayList();
 
-        inventories.sort(Comparator.comparing(ValidInventory::getPriority));
+        // Build inventory graph
+        populateInventoryList(newInventories, immediateBlockPos, facing.getOpposite(), initPath);
+
+        // Sort by priority
+        newInventories.sort(Comparator.comparing(InsertionPoint::getPriority));
+
+        // Group inventories by priority
+        prioritizedInsertionPoints.clear();
+        for (InsertionPoint inventory : newInventories) {
+            PrioritizedList<InsertionPoint> listForInventory = getPriorityList(inventory.priority);
+
+            if (listForInventory == null) {
+                listForInventory = new PrioritizedList(inventory.priority);
+                prioritizedInsertionPoints.add(listForInventory);
+            }
+
+            listForInventory.add(inventory);
+        }
+    }
+
+    public PrioritizedList<InsertionPoint> getPriorityList(int priority) {
+        for (PrioritizedList<InsertionPoint> prioritizedList : prioritizedInsertionPoints) {
+            if (prioritizedList.priority == priority) {
+                return prioritizedList;
+            }
+        }
+
+        return null;
     }
 
     /**
      * Recursively build list of inventories.
      */
-    private void buildInventoryGraph(BlockPos blockPos, Direction direction, Path path) {
+    private void populateInventoryList(List<InsertionPoint> inventoryList, BlockPos blockPos, Direction direction, Path path) {
         if (!path.visited.contains(blockPos)) {
             Block queryBlock = world.getBlockState(blockPos).getBlock();
             Block prevBlock = world.getBlockState(blockPos.offset(direction.getOpposite())).getBlock();
@@ -278,23 +328,23 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                 for (int i = 0; i < Direction.values().length; i++) {
                     Direction searchDirection = Direction.values()[i];
 
-                    buildInventoryGraph(blockPos.offset(searchDirection), searchDirection, newPath);
+                    populateInventoryList(inventoryList, blockPos.offset(searchDirection), searchDirection, newPath);
                 }
             } else if (getInventoryAt(world, blockPos) != null) {
-                ValidInventory newInventory = new ValidInventory(blockPos, direction.getOpposite(), path.filters, path.priority, path.visited.size());
+                InsertionPoint newInventory = new InsertionPoint(blockPos, direction.getOpposite(), path.filters, path.priority, path.visited.size());
 
                 // Check if there's a similar path already
-                int index = inventories.indexOf(newInventory);
+                int index = prioritizedInsertionPoints.indexOf(newInventory);
 
                 if (index != -1) {
-                    ValidInventory similarInventory = inventories.get(index);
+                    InsertionPoint similarInventory = inventoryList.get(index);
 
                     // If the new inventory is a shorter path, replace the old one
                     if (newInventory.distance < similarInventory.distance) {
-                        inventories.set(index, newInventory);
+                        inventoryList.set(index, newInventory);
                     }
                 } else {
-                    inventories.add(newInventory);
+                    inventoryList.add(newInventory);
                 }
             }
         }
@@ -305,8 +355,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         return pullerPipe.get(FacingBlock.FACING);
     }
 
-    public List<ValidInventory> getValidInventories() {
-        return inventories;
+    public List<PrioritizedList<InsertionPoint>> getValidInventories() {
+        return prioritizedInsertionPoints;
     }
 
     private static void sanitizeSlot(Inventory inv, int slot) {
@@ -417,9 +467,9 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
      * This method is called when a pipe is placed/updated.
      * Traverses the pipe graph and updates any puller pipes found.
      *
-     * @param world     World
-     * @param blockPos  BlockPos to search
-     * @param searched  Set of block positions already searched
+     * @param world    World
+     * @param blockPos BlockPos to search
+     * @param searched Set of block positions already searched
      */
     public static void updatePullerPipes(WorldAccess world, BlockPos blockPos, Direction direction, Set<BlockPos> searched) {
         if (!searched.contains(blockPos)) {
@@ -452,37 +502,11 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         }
     }
 
-    public static class ValidInventory {
-        public final BlockPos blockPos;
-        public final Direction direction;
-        public final List<Filter> filters;
+    public static class PrioritizedList<E> extends ArrayList<E> {
         public final int priority;
-        public final int distance;
 
-        public ValidInventory(BlockPos blockPos, Direction direction, List<Filter> filters, int priority, int distance) {
-            this.blockPos = blockPos;
-            this.direction = direction;
-            this.filters = filters;
+        public PrioritizedList(int priority) {
             this.priority = priority;
-            this.distance = distance;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(blockPos.getX(), blockPos.getY(), blockPos.getZ(), direction.ordinal(), filters, priority);
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            return obj instanceof ValidInventory
-                    && blockPos.equals(((ValidInventory) obj).blockPos)
-                    && direction.equals(((ValidInventory) obj).direction)
-                    && filters.equals(((ValidInventory) obj).filters)
-                    && priority == ((ValidInventory) obj).priority;
-        }
-
-        public int getPriority() {
-            return priority;
         }
     }
 

@@ -1,12 +1,12 @@
 package com.kqp.ezpas.item;
 
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
+import com.kqp.ezpas.pipe.InsertionPoint;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.text.LiteralText;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.ActionResult;
@@ -15,6 +15,7 @@ import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class PipeProbeItem extends Item {
     public PipeProbeItem() {
@@ -31,7 +32,9 @@ public class PipeProbeItem extends Item {
 
             if (be instanceof PullerPipeBlockEntity) {
                 PullerPipeBlockEntity ppBe = ((PullerPipeBlockEntity) be);
-                List<PullerPipeBlockEntity.ValidInventory> invList = ppBe.getValidInventories();
+                List<InsertionPoint> invList = ppBe.getValidInventories().stream()
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList());
 
                 Consumer<Text> send = (text) -> {
                     context.getPlayer().sendMessage(text, false);
@@ -45,7 +48,7 @@ public class PipeProbeItem extends Item {
                 if (invList.isEmpty()) {
                     sendText.accept("None");
                 } else {
-                    for (PullerPipeBlockEntity.ValidInventory inventory : invList) {
+                    for (InsertionPoint inventory : invList) {
                         send.accept(new TranslatableText(world.getBlockState(inventory.blockPos).getBlock().getTranslationKey())
                                 .append(String.format("@(%d, %d, %d), into %s side (priority: %d, distance: %d blocks)",
                                         inventory.blockPos.getX(),

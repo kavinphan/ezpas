@@ -1,4 +1,4 @@
-package com.kqp.ezpas.filter;
+package com.kqp.ezpas.pipe.filter;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.registry.Registry;

@@ -1,4 +1,4 @@
-package com.kqp.ezpas.filter;
+package com.kqp.ezpas.pipe.filter;
 
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
