@@ -44,10 +44,11 @@
     "pipe_probe.whitelist_header": "Whitelist: ",
     "pipe_probe.blacklist_header": "Blacklist: ",
 
-    "direction.down": "down",
-    "direction.up": "up",
-    "direction.north": "north",
-    "direction.south": "south",
-    "direction.west": "west",
-    "direction.east": "east"
+    "pipe_probe.insert_direction.header": "Insertion side: ",
+    "pipe_probe.insert_direction.down": "bottom",
+    "pipe_probe.insert_direction.up": "top",
+    "pipe_probe.insert_direction.north": "north",
+    "pipe_probe.insert_direction.south": "south",
+    "pipe_probe.insert_direction.west": "west",
+    "pipe_probe.insert_direction.east": "east"
 }

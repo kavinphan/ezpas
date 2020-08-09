@@ -54,13 +54,13 @@ public class PipeProbeItem extends Item {
                 } else {
                     for (InsertionPoint inventory : invList) {
                         send.accept(new TranslatableText(world.getBlockState(inventory.blockPos).getBlock().getTranslationKey())
-                                .append(String.format("@(%d, %d, %d), into ",
+                                .append(String.format("@(%d, %d, %d)",
                                         inventory.blockPos.getX(),
                                         inventory.blockPos.getY(),
                                         inventory.blockPos.getZ()))
-                                .append(new TranslatableText("direction." + inventory.direction.asString()))
                         );
 
+                        send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.insert_direction.header").append(new TranslatableText("pipe_probe.insert_direction." + inventory.direction.asString()))));
                         send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.priority").append(new LiteralText("" + inventory.priority))));
                         send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.distance").append(new LiteralText("" + inventory.distance))));
 
