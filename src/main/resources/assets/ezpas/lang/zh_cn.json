@@ -1,0 +1,55 @@
+{
+    "block.ezpas.iron_puller_pipe": "铁管道泵",
+    "block.ezpas.gold_puller_pipe": "金管道泵",
+    "block.ezpas.diamond_puller_pipe": "钻石管道泵",
+    "block.ezpas.netherite_puller_pipe": "下届合金管道泵",
+    "block.ezpas.ender_puller_pipe": "末影管道泵",
+
+    "block.ezpas.pipe": "普通管道",
+    "block.ezpas.dense_pipe": "优先管道",
+    "block.ezpas.rigid_pipe": "石制强化管道",
+
+    "block.ezpas.white_stained_pipe": "白色管道",
+    "block.ezpas.orange_stained_pipe": "橙色管道",
+    "block.ezpas.magenta_stained_pipe": "品红色管道",
+    "block.ezpas.light_blue_stained_pipe": "浅蓝色管道",
+    "block.ezpas.yellow_stained_pipe": "黄色管道",
+    "block.ezpas.lime_stained_pipe": "黄绿色管道",
+    "block.ezpas.pink_stained_pipe": "粉红色管道",
+    "block.ezpas.gray_stained_pipe": "灰色管道",
+    "block.ezpas.light_gray_stained_pipe": "淡灰色管道",
+    "block.ezpas.cyan_stained_pipe": "青色管道",
+    "block.ezpas.purple_stained_pipe": "紫色管道",
+    "block.ezpas.blue_stained_pipe": "蓝色管道",
+    "block.ezpas.brown_stained_pipe": "棕色管道",
+    "block.ezpas.green_stained_pipe": "绿色管道",
+    "block.ezpas.red_stained_pipe": "红色管道",
+    "block.ezpas.black_stained_pipe": "黑色管道",
+
+    "block.ezpas.filtered_pipe_whitelist": "白色过滤管",
+    "block.ezpas.filtered_pipe_blacklist": "黑色过滤管",
+
+    "item.ezpas.pipe_probe": "管道探头",
+
+
+    "container.filtered_pipe_whitelist": "白色过滤管",
+    "container.filtered_pipe_blacklist": "黑色过滤管",
+
+
+    "pipe_probe.message_header": "输出信息:",
+    "pipe_probe.insertion_point": "",
+    "pipe_probe.filters_header": "过滤器信息（按顺序）:",
+    "pipe_probe.none": "没有",
+    "pipe_probe.priority": "优先级: ",
+    "pipe_probe.distance": "距离: ",
+    "pipe_probe.whitelist_header": "白名单: ",
+    "pipe_probe.blacklist_header": "黑名单: ",
+
+    "pipe_probe.insert_direction.header": "输出方向: ",
+    "pipe_probe.insert_direction.down": "底部",
+    "pipe_probe.insert_direction.up": "头部",
+    "pipe_probe.insert_direction.north": "北方",
+    "pipe_probe.insert_direction.south": "南方",
+    "pipe_probe.insert_direction.west": "西方",
+    "pipe_probe.insert_direction.east": "东方"
+}
