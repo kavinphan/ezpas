@@ -106,11 +106,13 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             return;
         }
 
-        // Fix any broken indices
-        if (currentPriority >= prioritizedInsertionPoints.size()) {
-            currentPriority = 0;
+        // If current priority is broken, increment to revalidate
+        if (getPriorityList(currentPriority) == null) {
+            incrementCurrentPriority();
         }
-        if (rrCounter >= prioritizedInsertionPoints.get(currentPriority).size()) {
+
+        // If round robin counter is out of bounds for current priority, revalidate
+        if (rrCounter >= getPriorityList(currentPriority).size()) {
             rrCounter = 0;
         }
 
@@ -141,7 +143,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                 }
             }
 
-            PrioritizedList<InsertionPoint> insertionPoints = prioritizedInsertionPoints.get(currentPriority);
+            PrioritizedList<InsertionPoint> insertionPoints = getPriorityList(currentPriority);
             int attempts = 0;
             boolean extracted = false;
 
@@ -153,20 +155,39 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             }
 
             if (!extracted) {
-                currentPriority++;
-
-                if (currentPriority >= prioritizedInsertionPoints.size()) {
-                    currentPriority = 0;
-                }
+                incrementCurrentPriority();
             }
         }
     }
 
     private void incrementRrCounter() {
         rrCounter++;
-        if (rrCounter >= prioritizedInsertionPoints.get(currentPriority).size()) {
+        if (rrCounter >= getPriorityList(currentPriority).size()) {
             rrCounter = 0;
         }
+    }
+
+    private void incrementCurrentPriority() {
+        int minPriority = currentPriority;
+
+        // Iterate through list to find a list with a higher priority
+        // If we find one, set that as the current priority and exit
+        // Also find the minimum priority during this
+        for (int i = 0; i < prioritizedInsertionPoints.size(); i++) {
+            PrioritizedList<InsertionPoint> prioritizedList = prioritizedInsertionPoints.get(i);
+
+            if (prioritizedList.priority > currentPriority) {
+                currentPriority = prioritizedList.priority;
+                return;
+            }
+
+            if (prioritizedList.priority < minPriority) {
+                minPriority = prioritizedList.priority;
+            }
+        }
+
+        // If we aren't able to find a higher priority, set it to the minimum
+        currentPriority = minPriority;
     }
 
     /**
