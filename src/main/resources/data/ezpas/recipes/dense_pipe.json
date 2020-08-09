@@ -1,0 +1,20 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "IOI",
+        "O O",
+        "IOI"
+    ],
+    "key": {
+        "O": {
+            "item": "minecraft:obsidian"
+        },
+        "I": {
+            "item": "minecraft:iron_ingot"
+        }
+    },
+    "result": {
+        "item": "ezpas:dense_pipe",
+        "count": 4
+    }
+}

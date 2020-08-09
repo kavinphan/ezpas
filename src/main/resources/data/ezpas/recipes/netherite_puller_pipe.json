@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "ODO",
+        "ONO",
+        "ODO"
+    ],
+    "key": {
+        "O": {
+            "item": "minecraft:obsidian"
+        },
+        "N": {
+            "item": "minecraft:netherite_ingot"
+        },
+        "D": {
+            "item": "ezpas:diamond_puller_pipe"
+        }
+    },
+    "result": {
+        "item": "ezpas:netherite_puller_pipe",
+        "count": 2
+    }
+}

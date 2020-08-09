@@ -43,7 +43,7 @@ public class Ezpas implements ModInitializer {
             BlockEntityType.Builder.create(DiamondPullerPipeBlockEntity::new, DIAMOND_PP).build(null));
 
     public static BlockEntityType<NetheritePullerPipeBlockEntity> NETHERITE_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("netherite_puller_pipe"),
-            BlockEntityType.Builder.create(NetheritePullerPipeBlockEntity::new, DIAMOND_PP).build(null));
+            BlockEntityType.Builder.create(NetheritePullerPipeBlockEntity::new, NETHERITE_PP).build(null));
 
     public static BlockEntityType<EnderPullerPipeBlockEntity> ENDER_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("ender_puller_pipe"),
             BlockEntityType.Builder.create(EnderPullerPipeBlockEntity::new, ENDER_PP).build(null));

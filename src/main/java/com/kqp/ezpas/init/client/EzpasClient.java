@@ -12,6 +12,7 @@ public class EzpasClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         BlockRenderLayerMap.INSTANCE.putBlock(Ezpas.PIPE, RenderLayer.getCutout());
+        BlockRenderLayerMap.INSTANCE.putBlock(Ezpas.DENSE_PIPE, RenderLayer.getTranslucent());
         BlockRenderLayerMap.INSTANCE.putBlock(Ezpas.FILTERED_PIPE_WHITELIST, RenderLayer.getCutout());
         BlockRenderLayerMap.INSTANCE.putBlock(Ezpas.FILTERED_PIPE_BLACKLIST, RenderLayer.getCutout());
 
