@@ -75,7 +75,13 @@ public class FilteredPipeBlock extends PipeBlock implements BlockEntityProvider 
     }
 
     public enum Type {
-        WHITELIST,
-        BLACKLIST
+        WHITELIST("pipe_probe.whitelist_header"),
+        BLACKLIST("pipe_probe.blacklist_header");
+
+        public final String localizationKey;
+
+        Type(String localizationKey) {
+            this.localizationKey = localizationKey;
+        }
     }
 }

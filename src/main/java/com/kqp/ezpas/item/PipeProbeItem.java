@@ -1,10 +1,14 @@
 package com.kqp.ezpas.item;
 
+import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
 import com.kqp.ezpas.pipe.InsertionPoint;
+import com.kqp.ezpas.pipe.filter.Filter;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.resource.language.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
@@ -44,23 +48,35 @@ public class PipeProbeItem extends Item {
                     send.accept(new LiteralText(string));
                 };
 
-                sendText.accept("Insertion points:");
+                send.accept(new TranslatableText("pipe_probe.message_header"));
                 if (invList.isEmpty()) {
-                    sendText.accept("None");
+                    send.accept(new TranslatableText("pipe_probe.none"));
                 } else {
                     for (InsertionPoint inventory : invList) {
                         send.accept(new TranslatableText(world.getBlockState(inventory.blockPos).getBlock().getTranslationKey())
-                                .append(String.format("@(%d, %d, %d), into %s side (priority: %d, distance: %d blocks)",
+                                .append(String.format("@(%d, %d, %d), into ",
                                         inventory.blockPos.getX(),
                                         inventory.blockPos.getY(),
-                                        inventory.blockPos.getZ(),
-                                        inventory.direction,
-                                        inventory.priority,
-                                        inventory.distance
-                                ))
+                                        inventory.blockPos.getZ()))
+                                .append(new TranslatableText("direction." + inventory.direction.asString()))
                         );
 
-                        sendText.accept("");
+                        send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.priority").append(new LiteralText("" + inventory.priority))));
+                        send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.distance").append(new LiteralText("" + inventory.distance))));
+
+                        if (!inventory.filters.isEmpty()) {
+                            send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.filters_header")));
+
+                            for (Filter filter : inventory.filters) {
+                                send.accept(new LiteralText("    ").append(new TranslatableText(filter.type.localizationKey)));
+
+                                for (ItemStack stack : filter.itemStacks) {
+                                    if (!stack.isEmpty()) {
+                                        send.accept(new LiteralText("      ").append(new TranslatableText(stack.getTranslationKey())));
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

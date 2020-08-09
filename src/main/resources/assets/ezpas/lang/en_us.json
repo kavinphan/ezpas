@@ -32,5 +32,22 @@
     "item.ezpas.pipe_probe": "Pipe Probe",
 
     "container.filtered_pipe_whitelist": "White Filtered Pipe",
-    "container.filtered_pipe_blacklist": "Black Filtered Pipe"
+    "container.filtered_pipe_blacklist": "Black Filtered Pipe",
+
+
+    "pipe_probe.message_header": "Insertion points:",
+    "pipe_probe.insertion_point": "",
+    "pipe_probe.filters_header": "Filters (in order):",
+    "pipe_probe.none": "None",
+    "pipe_probe.priority": "Priority: ",
+    "pipe_probe.distance": "Distance: ",
+    "pipe_probe.whitelist_header": "Whitelist: ",
+    "pipe_probe.blacklist_header": "Blacklist: ",
+
+    "direction.down": "down",
+    "direction.up": "up",
+    "direction.north": "north",
+    "direction.south": "south",
+    "direction.west": "west",
+    "direction.east": "east"
 }

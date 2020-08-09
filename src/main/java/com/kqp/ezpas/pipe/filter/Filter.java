@@ -9,8 +9,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Filter {
-    private final FilteredPipeBlock.Type type;
-    private final List<ItemStack> itemStacks;
+    public final FilteredPipeBlock.Type type;
+    public final List<ItemStack> itemStacks;
 
     public Filter(FilteredPipeBlockEntity filterPipe) {
         this.type = filterPipe.getFilterType();
