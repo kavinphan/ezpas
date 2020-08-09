@@ -1,18 +1,18 @@
 {
     "type": "minecraft:crafting_shaped",
     "pattern": [
-        "CPC",
-        "CIC",
-        "CPC"
+        "ODO",
+        "OEO",
+        "ODO"
     ],
     "key": {
         "C": {
             "item": "minecraft:cobblestone"
         },
-        "I": {
+        "E": {
             "item": "minecraft:ender_eye"
         },
-        "P": {
+        "D": {
             "item": "ezpas:diamond_puller_pipe"
         }
     },
