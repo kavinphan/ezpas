@@ -47,11 +47,12 @@ public class PipeProbeItem extends Item {
                 } else {
                     for (PullerPipeBlockEntity.ValidInventory inventory : invList) {
                         send.accept(new TranslatableText(world.getBlockState(inventory.blockPos).getBlock().getTranslationKey())
-                                .append(String.format("@(%d, %d, %d), into %s side (distance: %d blocks)",
+                                .append(String.format("@(%d, %d, %d), into %s side (priority: %d, distance: %d blocks)",
                                         inventory.blockPos.getX(),
                                         inventory.blockPos.getY(),
                                         inventory.blockPos.getZ(),
                                         inventory.direction,
+                                        inventory.priority,
                                         inventory.distance
                                 ))
                         );

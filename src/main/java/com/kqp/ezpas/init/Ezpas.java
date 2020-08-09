@@ -52,6 +52,7 @@ public class Ezpas implements ModInitializer {
             BlockEntityType.Builder.create(FilteredPipeBlockEntity::new, ENDER_PP).build(null));
 
     public static final Block PIPE = register("pipe", new PipeBlock());
+    public static final Block DENSE_PIPE = register("dense_pipe", new PipeBlock());
 
     public static final Block FILTERED_PIPE_WHITELIST = register("filtered_pipe_whitelist", new FilteredPipeBlock(FilteredPipeBlock.Type.WHITELIST));
     public static final Block FILTERED_PIPE_BLACKLIST = register("filtered_pipe_blacklist", new FilteredPipeBlock(FilteredPipeBlock.Type.BLACKLIST));
