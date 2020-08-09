@@ -37,7 +37,7 @@ public abstract class PullerPipeBlock extends BlockWithEntity {
         BlockEntity be = world.getBlockEntity(pos);
 
         if (be instanceof PullerPipeBlockEntity) {
-            ((PullerPipeBlockEntity) be).updatePullerPipes();
+            ((PullerPipeBlockEntity) be).markToRecalculate();
         }
 
         return super.getStateForNeighborUpdate(state, direction, newState, world, pos, posFrom);
@@ -48,7 +48,7 @@ public abstract class PullerPipeBlock extends BlockWithEntity {
         BlockEntity be = world.getBlockEntity(pos);
 
         if (be instanceof PullerPipeBlockEntity) {
-            ((PullerPipeBlockEntity) be).updatePullerPipes();
+            ((PullerPipeBlockEntity) be).markToRecalculate();
         }
     }
 

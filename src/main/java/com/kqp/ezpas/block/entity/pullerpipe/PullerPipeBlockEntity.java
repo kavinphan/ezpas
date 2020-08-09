@@ -29,6 +29,8 @@ import java.util.stream.IntStream;
 public abstract class PullerPipeBlockEntity extends BlockEntity implements Tickable {
     private List<PrioritizedList<InsertionPoint>> prioritizedInsertionPoints;
 
+    private boolean shouldRecalculate = true;
+
     private int rrCounter;
     private int currentPriority;
     public int coolDown;
@@ -36,8 +38,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     public final int speed;
     public final int extractionRate;
     public final int subTickRate;
-
-    public boolean loaded = false;
 
     public PullerPipeBlockEntity(BlockEntityType type, int speed, int extractionRate, int subTickRate) {
         super(type);
@@ -71,10 +71,10 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     @Override
     public void tick() {
         if (!this.world.isClient) {
-            if (!loaded) {
-                this.updatePullerPipes();
+            if (shouldRecalculate) {
+                this.calculateInsertionPoints();
 
-                loaded = true;
+                shouldRecalculate = false;
             }
 
             if (!this.world.isReceivingRedstonePower(pos)) {
@@ -256,7 +256,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     /**
      * Clears the list of connected inventories and updates it by recursively searching connected pipe blocks.
      */
-    public void updatePullerPipes() {
+    private void calculateInsertionPoints() {
         Direction facing = getFacing();
 
         BlockPos immediateBlockPos = this.pos.offset(facing.getOpposite());
@@ -268,8 +268,11 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         // Create list of inventories
         List<InsertionPoint> newInventories = new ArrayList();
 
+        // Create path map
+        Map<BlockPos, List<Path>> pathMap = new HashMap();
+
         // Build inventory graph
-        populateInventoryList(newInventories, immediateBlockPos, facing.getOpposite(), initPath);
+        calculateInsertionPoints(newInventories, immediateBlockPos, facing.getOpposite(), pathMap, initPath);
 
         // Sort by priority
         newInventories.sort(Comparator.comparing(InsertionPoint::getPriority));
@@ -301,7 +304,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     /**
      * Recursively build list of inventories.
      */
-    private void populateInventoryList(List<InsertionPoint> inventoryList, BlockPos blockPos, Direction direction, Path path) {
+    private void calculateInsertionPoints(List<InsertionPoint> inventoryList, BlockPos blockPos, Direction direction, Map<BlockPos, List<Path>> pathMap, Path path) {
         if (!path.visited.contains(blockPos)) {
             Block queryBlock = world.getBlockState(blockPos).getBlock();
             Block prevBlock = world.getBlockState(blockPos.offset(direction.getOpposite())).getBlock();
@@ -325,10 +328,20 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                     newPath.priority++;
                 }
 
+                List<Path> pathList = pathMap.computeIfAbsent(blockPos, x -> new ArrayList());
+
+                for (Path queryPath : pathList) {
+                    if (queryPath.filters.equals(newPath.filters) && queryPath.priority == newPath.priority) {
+                        return;
+                    }
+                }
+
+                pathList.add(newPath);
+
                 for (int i = 0; i < Direction.values().length; i++) {
                     Direction searchDirection = Direction.values()[i];
 
-                    populateInventoryList(inventoryList, blockPos.offset(searchDirection), searchDirection, newPath);
+                    calculateInsertionPoints(inventoryList, blockPos.offset(searchDirection), searchDirection, pathMap, newPath);
                 }
             } else if (getInventoryAt(world, blockPos) != null) {
                 InsertionPoint newInventory = new InsertionPoint(blockPos, direction.getOpposite(), path.filters, path.priority, path.visited.size());
@@ -496,10 +509,14 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                 BlockEntity be = world.getBlockEntity(blockPos);
 
                 if (be instanceof PullerPipeBlockEntity) {
-                    ((PullerPipeBlockEntity) be).updatePullerPipes();
+                    ((PullerPipeBlockEntity) be).markToRecalculate();
                 }
             }
         }
+    }
+
+    public void markToRecalculate() {
+        this.shouldRecalculate = true;
     }
 
     public static class PrioritizedList<E> extends ArrayList<E> {
