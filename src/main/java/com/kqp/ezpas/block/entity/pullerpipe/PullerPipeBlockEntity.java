@@ -3,6 +3,7 @@ package com.kqp.ezpas.block.entity.pullerpipe;
 import com.kqp.ezpas.block.ColoredPipeBlock;
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
+import com.kqp.ezpas.block.RigidPipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
 import com.kqp.ezpas.pipe.InsertionPoint;
@@ -343,7 +344,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
                     calculateInsertionPoints(inventoryList, blockPos.offset(searchDirection), searchDirection, pathMap, newPath);
                 }
-            } else if (getInventoryAt(world, blockPos) != null) {
+            } else if (!(prevBlock instanceof RigidPipeBlock) && getInventoryAt(world, blockPos) != null) {
                 InsertionPoint newInventory = new InsertionPoint(blockPos, direction.getOpposite(), path.filters, path.priority, path.visited.size());
 
                 // Check if there's a similar path already

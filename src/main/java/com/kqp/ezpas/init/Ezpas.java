@@ -3,6 +3,7 @@ package com.kqp.ezpas.init;
 import com.kqp.ezpas.block.ColoredPipeBlock;
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
+import com.kqp.ezpas.block.RigidPipeBlock;
 import com.kqp.ezpas.block.container.FilteredPipeScreenHandler;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.entity.pullerpipe.*;
@@ -53,6 +54,7 @@ public class Ezpas implements ModInitializer {
 
     public static final Block PIPE = register("pipe", new PipeBlock());
     public static final Block DENSE_PIPE = register("dense_pipe", new PipeBlock());
+    public static final Block RIGID_PIPE = register("rigid_pipe", new RigidPipeBlock());
 
     public static final Block FILTERED_PIPE_WHITELIST = register("filtered_pipe_whitelist", new FilteredPipeBlock(FilteredPipeBlock.Type.WHITELIST));
     public static final Block FILTERED_PIPE_BLACKLIST = register("filtered_pipe_blacklist", new FilteredPipeBlock(FilteredPipeBlock.Type.BLACKLIST));

@@ -46,7 +46,7 @@ public class PipeBlock extends Block {
 
     private final ShapeUtil shapeUtil;
 
-    public PipeBlock() {
+    public  PipeBlock() {
         super(FabricBlockSettings.of(Material.GLASS).strength(0.3F, 0.3F).sounds(BlockSoundGroup.GLASS).nonOpaque().build());
 
         this.setDefaultState(this.getStateManager().getDefaultState()
