@@ -25,13 +25,13 @@ public class Filter {
             ItemStack filterStack = itemStacks.get(i);
 
             if (!filterStack.isEmpty()) {
-                if (ItemStack.areItemsEqual(queryStack, filterStack) != passingEqualityCondition) {
-                    return false;
+                if (ItemStack.areItemsEqual(queryStack, filterStack) == passingEqualityCondition) {
+                    return true;
                 }
             }
         }
 
-        return true;
+        return false;
     }
 
     @Override
