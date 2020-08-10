@@ -353,7 +353,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                 List<Path> pathList = pathMap.computeIfAbsent(blockPos, x -> new ArrayList());
 
                 for (Path queryPath : pathList) {
-                    if (queryPath.filters.equals(newPath.filters) && queryPath.priority == newPath.priority) {
+                    if (queryPath.filters.equals(newPath.filters) || queryPath.priority <= newPath.priority) {
                         return;
                     }
                 }
