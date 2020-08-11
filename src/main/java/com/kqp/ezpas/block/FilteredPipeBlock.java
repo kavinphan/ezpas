@@ -5,6 +5,7 @@ import com.kqp.ezpas.init.Ezpas;
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
@@ -15,6 +16,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
@@ -48,16 +50,17 @@ public class FilteredPipeBlock extends PipeBlock implements BlockEntityProvider 
     }
 
     @Override
-    public void onBroken(WorldAccess world, BlockPos pos, BlockState state) {
-        if (state.getBlock() != state.getBlock()) {
+    public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+        if (!state.isOf(newState.getBlock())) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
 
-            if (blockEntity instanceof Inventory) {
-                ItemScatterer.spawn((World) world, pos, (Inventory) blockEntity);
-                world.updateNeighbors(pos, state.getBlock());
+            if (blockEntity instanceof FilteredPipeBlockEntity) {
+                ItemScatterer.spawn(world, pos, (Inventory) blockEntity);
+
+                world.updateComparators(pos, this);
             }
 
-            super.onBroken(world, pos, state);
+            super.onStateReplaced(state, world, pos, newState, moved);
         }
     }
 
