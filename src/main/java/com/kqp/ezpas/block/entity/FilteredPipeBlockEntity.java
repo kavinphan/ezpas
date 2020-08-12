@@ -24,6 +24,7 @@ import java.util.HashSet;
 
 public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implements ExtendedScreenHandlerFactory {
     public DefaultedList<ItemStack> inventory;
+    public boolean persist = false;
 
     public FilteredPipeBlockEntity() {
         super(Ezpas.FILTERED_PIPE_BLOCK_ENTITY);
@@ -49,7 +50,7 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
     @Override
     protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory) {
         return new FilteredPipeScreenHandler(syncId, playerInventory, this,
-                getFilterType());
+                getFilterType(), persist);
     }
 
     @Override
@@ -61,6 +62,8 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
         if (!this.deserializeLootTable(tag)) {
             Inventories.fromTag(tag, this.inventory);
         }
+
+        this.persist = tag.getBoolean("Persist");
     }
 
     @Override
@@ -70,6 +73,8 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
         if (!this.serializeLootTable(tag)) {
             Inventories.toTag(tag, this.inventory);
         }
+
+        tag.putBoolean("Persist", persist);
 
         return tag;
     }
@@ -118,5 +123,6 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
         buf.writeBlockPos(this.pos);
+        buf.writeBoolean(persist);
     }
 }

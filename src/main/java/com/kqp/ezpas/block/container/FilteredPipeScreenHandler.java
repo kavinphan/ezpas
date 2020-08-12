@@ -8,18 +8,22 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.util.math.BlockPos;
 
 public class FilteredPipeScreenHandler extends ScreenHandler {
     public PlayerInventory playerInventory;
     public Inventory inventory;
     public FilteredPipeBlock.Type type;
+    public BlockPos blockPos;
+    public boolean persist;
 
-    public FilteredPipeScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, FilteredPipeBlock.Type type) {
+    public FilteredPipeScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, FilteredPipeBlock.Type type, boolean persist) {
         super(Ezpas.FILTERED_PIPE_SCREEN_HANDLER_TYPE, syncId);
 
         this.playerInventory = playerInventory;
         this.inventory = inventory;
         this.type = type;
+        this.persist = persist;
 
         checkSize(inventory, 9);
         inventory.onOpen(playerInventory.player);
@@ -29,19 +33,18 @@ public class FilteredPipeScreenHandler extends ScreenHandler {
 
         // Filtered pipe inventory
         for (i = 0; i < 9; i++) {
-            this.addSlot(new Slot(inventory, i, 8 + i * 18, 20));
+            this.addSlot(new Slot(inventory, i, 8 + i * 18, 52));
         }
-
 
         // Player inventory
         for (j = 0; j < 3; ++j) {
             for (int l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(playerInventory, l + j * 9 + 9, 8 + l * 18, j * 18 + 51));
+                this.addSlot(new Slot(playerInventory, l + j * 9 + 9, 8 + l * 18, j * 18 + 83));
             }
         }
 
         for (j = 0; j < 9; ++j) {
-            this.addSlot(new Slot(playerInventory, j, 8 + j * 18, 109));
+            this.addSlot(new Slot(playerInventory, j, 8 + j * 18, 141));
         }
     }
 

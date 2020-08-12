@@ -344,7 +344,11 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                     BlockEntity be = world.getBlockEntity(blockPos);
 
                     if (be instanceof FilteredPipeBlockEntity) {
-                        newPath.filters.add(new Filter((FilteredPipeBlockEntity) be));
+                        FilteredPipeBlockEntity filteredPipeBlockEntity = (FilteredPipeBlockEntity) be;
+
+                        if (filteredPipeBlockEntity.persist) {
+                            newPath.filters.add(new Filter(filteredPipeBlockEntity));
+                        }
                     }
                 } else if (queryBlock == Ezpas.DENSE_PIPE) {
                     newPath.priority++;
@@ -366,6 +370,19 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                     calculateInsertionPoints(inventoryList, blockPos.offset(searchDirection), searchDirection, pathMap, newPath);
                 }
             } else if (!(prevBlock instanceof RigidPipeBlock) && getInventoryAt(world, blockPos) != null) {
+                // Add non-persistent filtered pipes
+                if (prevBlock instanceof FilteredPipeBlock) {
+                    BlockEntity be = world.getBlockEntity(blockPos);
+
+                    if (be instanceof FilteredPipeBlockEntity) {
+                        FilteredPipeBlockEntity filteredPipeBlockEntity = (FilteredPipeBlockEntity) be;
+
+                        if (!filteredPipeBlockEntity.persist) {
+                            path.filters.add(new Filter(filteredPipeBlockEntity));
+                        }
+                    }
+                }
+
                 InsertionPoint newInventory = new InsertionPoint(blockPos, direction.getOpposite(), path.filters, path.priority, path.visited.size());
 
                 // Check if there's a similar path already
