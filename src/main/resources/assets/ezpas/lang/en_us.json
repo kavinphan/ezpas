@@ -33,6 +33,8 @@
 
     "container.filtered_pipe_whitelist": "White Filtered Pipe",
     "container.filtered_pipe_blacklist": "Black Filtered Pipe",
+    "container.filtered_pipe.persist": "Persist: ",
+    "container.filtered_pipe.persist.help": "Whether connected pipes inherit this pipe's filter",
 
 
     "pipe_probe.message_header": "Insertion points:",

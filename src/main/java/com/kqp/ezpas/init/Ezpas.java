@@ -9,6 +9,7 @@ import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.entity.pullerpipe.*;
 import com.kqp.ezpas.block.pullerpipe.*;
 import com.kqp.ezpas.item.PipeProbeItem;
+import com.kqp.ezpas.network.SetPersistStateC2S;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.block.Block;
@@ -64,13 +65,20 @@ public class Ezpas implements ModInitializer {
     public static final ScreenHandlerType<FilteredPipeScreenHandler> FILTERED_PIPE_SCREEN_HANDLER_TYPE =
             ScreenHandlerRegistry.registerExtended(id("filtered_pipe"), (syncId, inv, buf) -> {
                 final World world = inv.player.world;
-                final BlockPos pos = buf.readBlockPos();
+                final BlockPos blockPos = buf.readBlockPos();
+                final boolean persist = buf.readBoolean();
 
-                return (FilteredPipeScreenHandler) world.getBlockState(pos).createScreenHandlerFactory(world, pos).createMenu(syncId, inv, inv.player);
+                FilteredPipeScreenHandler screenHandler = (FilteredPipeScreenHandler) world.getBlockState(blockPos).createScreenHandlerFactory(world, blockPos).createMenu(syncId, inv, inv.player);
+
+                screenHandler.blockPos = blockPos;
+                screenHandler.persist = persist;
+
+                return screenHandler;
             });
 
     @Override
     public void onInitialize() {
+        SetPersistStateC2S.register();
     }
 
     private static Block register(String name, Block block) {
