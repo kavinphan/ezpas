@@ -24,7 +24,7 @@ public class FilteredPipeScreen extends HandledScreen<FilteredPipeScreenHandler>
         super(container, playerInventory, new TranslatableText("container.filtered_pipe_" + container.type.name().toLowerCase()));
 
         this.backgroundWidth = 176;
-        this.backgroundHeight = 165;
+        this.backgroundHeight = 168;
     }
 
     @Override

@@ -41,12 +41,12 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
     public FilteredPipeBlockEntity() {
         super(Ezpas.FILTERED_PIPE_BLOCK_ENTITY);
 
-        this.inventory = DefaultedList.ofSize(9, ItemStack.EMPTY);
+        this.inventory = DefaultedList.ofSize(27, ItemStack.EMPTY);
     }
 
     @Override
     public int size() {
-        return 9;
+        return 27;
     }
 
     @Override
