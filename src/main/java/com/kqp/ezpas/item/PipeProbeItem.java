@@ -71,9 +71,17 @@ public class PipeProbeItem extends Item {
                             for (Filter filter : inventory.filters) {
                                 send.accept(new LiteralText("    ").append(new TranslatableText(filter.type.localizationKey)));
 
+                                send.accept(new LiteralText("      ").append(new TranslatableText("pipe_probe.flags")));
+                                for (int i = 0; i < filter.flags.length; i++) {
+                                    if (filter.flags[i]) {
+                                        send.accept(new LiteralText("        ").append(new TranslatableText("container.filtered_pipe.advanced.flag" + i + ".help")));
+                                    }
+                                }
+
+                                send.accept(new LiteralText("      ").append(new TranslatableText("pipe_probe.stacks")));
                                 for (ItemStack stack : filter.itemStacks) {
                                     if (!stack.isEmpty()) {
-                                        send.accept(new LiteralText("      ").append(new TranslatableText(stack.getTranslationKey())));
+                                        send.accept(new LiteralText("        ").append(new TranslatableText(stack.getTranslationKey())));
                                     }
                                 }
                             }
