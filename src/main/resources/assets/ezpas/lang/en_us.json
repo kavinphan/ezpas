@@ -75,5 +75,8 @@
     "pipe_probe.insert_direction.north": "north",
     "pipe_probe.insert_direction.south": "south",
     "pipe_probe.insert_direction.west": "west",
-    "pipe_probe.insert_direction.east": "east"
+    "pipe_probe.insert_direction.east": "east",
+
+    "pipe_probe.flags": "Flags: ",
+    "pipe_probe.stacks": "Stacks: "
 }
