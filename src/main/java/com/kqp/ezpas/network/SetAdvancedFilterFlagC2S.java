@@ -25,7 +25,6 @@ public class SetAdvancedFilterFlagC2S {
         ClientSidePacketRegistry.INSTANCE.sendToServer(ID, buf);
     }
 
-    @Environment(EnvType.CLIENT)
     public static void register() {
         ServerSidePacketRegistry.INSTANCE.register(ID, (context, buf) -> {
             BlockPos blockPos = buf.readBlockPos();
