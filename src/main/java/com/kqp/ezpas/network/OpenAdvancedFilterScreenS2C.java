@@ -2,13 +2,13 @@ package com.kqp.ezpas.network;
 
 import com.kqp.ezpas.client.screen.AdvancedFilterScreen;
 import com.kqp.ezpas.init.Ezpas;
+import com.kqp.ezpas.init.client.EzpasClient;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
@@ -41,7 +41,7 @@ public class OpenAdvancedFilterScreenS2C {
             }
 
             context.getTaskQueue().execute(() -> {
-                MinecraftClient.getInstance().openScreen(new AdvancedFilterScreen(blockPos, flags));
+                EzpasClient.openAdvancedFilterScreen(blockPos, flags);
             });
         });
     }
