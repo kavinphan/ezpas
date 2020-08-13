@@ -2,7 +2,6 @@ package com.kqp.ezpas.client.screen;
 
 import com.kqp.ezpas.block.container.FilteredPipeScreenHandler;
 import com.kqp.ezpas.init.Ezpas;
-import com.kqp.ezpas.network.SetPersistStateC2S;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -21,47 +20,11 @@ import java.util.function.Supplier;
 public class FilteredPipeScreen extends HandledScreen<FilteredPipeScreenHandler> {
     private static final Identifier TEXTURE = Ezpas.id("textures/gui/container/filtered_pipe.png");
 
-    private ButtonWidget persistButton;
-
     public FilteredPipeScreen(FilteredPipeScreenHandler container, PlayerInventory playerInventory) {
         super(container, playerInventory, new TranslatableText("container.filtered_pipe_" + container.type.name().toLowerCase()));
 
         this.backgroundWidth = 176;
         this.backgroundHeight = 165;
-    }
-
-    @Override
-    protected void init() {
-        super.init();
-
-        int x = (this.width - this.backgroundWidth) / 2;
-        int y = (this.height - this.backgroundHeight) / 2;
-
-        Supplier<Text> buttonText = () -> new TranslatableText("container.filtered_pipe.persist").append(new LiteralText("" + getScreenHandler().persist));
-
-        persistButton =new ButtonWidget(
-                x + 7,
-                y + 24,
-                80,
-                20,
-                buttonText.get(),
-                (button) -> {
-                    FilteredPipeScreenHandler screenHandler = getScreenHandler();
-                    screenHandler.persist = !screenHandler.persist;
-
-                    SetPersistStateC2S.sendToServer(screenHandler.blockPos, screenHandler.persist);
-
-                    this.persistButton.setMessage(buttonText.get());
-                },
-                (button, matrices, mouseX, mouseY) -> {
-                    List<Text> text = new ArrayList();
-                    text.add(new TranslatableText("container.filtered_pipe.persist.help"));
-
-                    this.renderTooltip(matrices, text, mouseX, mouseY);
-                }
-        );
-
-        this.addButton(persistButton);
     }
 
     @Override

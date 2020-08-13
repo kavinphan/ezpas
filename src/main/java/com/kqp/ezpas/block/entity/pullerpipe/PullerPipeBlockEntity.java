@@ -214,7 +214,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             ItemStack queryStack = from.getStack(queryExtractionSlot);
 
             if (queryStack != ItemStack.EMPTY
-                    && stackPasses(queryStack, filters)
+                    && stackPasses(queryStack, filters, to)
                     && canExtract(from, queryExtractionSlot, queryStack, extractionSide)) {
                 // Only continue if stack is not empty
                 // Query the receiving inventory to see what slot it can be inserted into
@@ -329,7 +329,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     private void calculateInsertionPoints(List<InsertionPoint> inventoryList, BlockPos blockPos, Direction direction, Map<BlockPos, List<Path>> pathMap, Path path) {
         if (!path.visited.contains(blockPos)) {
             Block queryBlock = world.getBlockState(blockPos).getBlock();
-            Block prevBlock = world.getBlockState(blockPos.offset(direction.getOpposite())).getBlock();
+            BlockPos prevBlockPos = blockPos.offset(direction.getOpposite());
+            Block prevBlock = world.getBlockState(prevBlockPos).getBlock();
 
             boolean validPipeBranch = queryBlock instanceof PipeBlock;
             if (prevBlock instanceof ColoredPipeBlock && queryBlock instanceof ColoredPipeBlock) {
@@ -345,9 +346,12 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
                     if (be instanceof FilteredPipeBlockEntity) {
                         FilteredPipeBlockEntity filteredPipeBlockEntity = (FilteredPipeBlockEntity) be;
+                        boolean redstoneDisableFlag = filteredPipeBlockEntity.flags[FilteredPipeBlockEntity.REDSTONE_DISABLE_FLAG];
 
-                        if (filteredPipeBlockEntity.persist) {
-                            newPath.filters.add(new Filter(filteredPipeBlockEntity));
+                        if (!redstoneDisableFlag || (redstoneDisableFlag && !world.isReceivingRedstonePower(blockPos))) {
+                            if (filteredPipeBlockEntity.flags[FilteredPipeBlockEntity.PERSIST_FLAG]) {
+                                newPath.filters.add(new Filter(filteredPipeBlockEntity));
+                            }
                         }
                     }
                 } else if (queryBlock == Ezpas.DENSE_PIPE) {
@@ -372,13 +376,16 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
             } else if (!(prevBlock instanceof RigidPipeBlock) && getInventoryAt(world, blockPos) != null) {
                 // Add non-persistent filtered pipes
                 if (prevBlock instanceof FilteredPipeBlock) {
-                    BlockEntity be = world.getBlockEntity(blockPos);
+                    BlockEntity be = world.getBlockEntity(prevBlockPos);
 
                     if (be instanceof FilteredPipeBlockEntity) {
                         FilteredPipeBlockEntity filteredPipeBlockEntity = (FilteredPipeBlockEntity) be;
+                        boolean redstoneDisableFlag = filteredPipeBlockEntity.flags[FilteredPipeBlockEntity.REDSTONE_DISABLE_FLAG];
 
-                        if (!filteredPipeBlockEntity.persist) {
-                            path.filters.add(new Filter(filteredPipeBlockEntity));
+                        if (!redstoneDisableFlag || (redstoneDisableFlag && !world.isReceivingRedstonePower(prevBlockPos))) {
+                            if (!filteredPipeBlockEntity.flags[FilteredPipeBlockEntity.PERSIST_FLAG]) {
+                                path.filters.add(new Filter(filteredPipeBlockEntity));
+                            }
                         }
                     }
                 }
@@ -505,9 +512,9 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
      * @param filters
      * @return
      */
-    private static boolean stackPasses(ItemStack itemStack, List<Filter> filters) {
+    private static boolean stackPasses(ItemStack itemStack, List<Filter> filters, Inventory destination) {
         for (Filter filter : filters) {
-            if (!filter.stackPasses(itemStack)) {
+            if (!filter.stackPasses(itemStack, destination)) {
                 return false;
             }
         }

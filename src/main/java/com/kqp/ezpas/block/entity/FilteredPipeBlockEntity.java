@@ -23,8 +23,20 @@ import net.minecraft.util.math.Direction;
 import java.util.HashSet;
 
 public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implements ExtendedScreenHandlerFactory {
+    public static final int PERSIST_FLAG = 0;
+    public static final int OR_AND_FLAG = 1;
+    public static final int MATCH_ITEM_TAG_FLAG = 2;
+    public static final int MATCH_NBT_FLAG = 3;
+    public static final int MATCH_CUSTOM_NAME_FLAG = 4;
+    public static final int MATCH_DAMAGE_FLAG = 5;
+    public static final int ONE_IN_INV_FLAG = 6;
+    public static final int MATCH_MOD_FLAG = 7;
+    public static final int MAINTAIN_COUNTS_FLAG = 8;
+    public static final int REDSTONE_DISABLE_FLAG = 9;
+
     public DefaultedList<ItemStack> inventory;
-    public boolean persist = false;
+
+    public boolean[] flags = new boolean[20];
 
     public FilteredPipeBlockEntity() {
         super(Ezpas.FILTERED_PIPE_BLOCK_ENTITY);
@@ -50,7 +62,7 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
     @Override
     protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory) {
         return new FilteredPipeScreenHandler(syncId, playerInventory, this,
-                getFilterType(), persist);
+                getFilterType());
     }
 
     @Override
@@ -63,7 +75,9 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
             Inventories.fromTag(tag, this.inventory);
         }
 
-        this.persist = tag.getBoolean("Persist");
+        for (int i = 0; i < flags.length; i++) {
+            flags[i] = tag.getBoolean("Flag" + i);
+        }
     }
 
     @Override
@@ -74,7 +88,9 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
             Inventories.toTag(tag, this.inventory);
         }
 
-        tag.putBoolean("Persist", persist);
+        for (int i = 0; i < flags.length; i++) {
+            tag.putBoolean("Flag" + i, flags[i]);
+        }
 
         return tag;
     }
@@ -123,6 +139,5 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
     @Override
     public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
         buf.writeBlockPos(this.pos);
-        buf.writeBoolean(persist);
     }
 }
