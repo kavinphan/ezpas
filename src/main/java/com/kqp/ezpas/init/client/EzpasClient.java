@@ -3,6 +3,7 @@ package com.kqp.ezpas.init.client;
 import com.kqp.ezpas.block.container.FilteredPipeScreenHandler;
 import com.kqp.ezpas.client.screen.FilteredPipeScreen;
 import com.kqp.ezpas.init.Ezpas;
+import com.kqp.ezpas.network.OpenAdvancedFilterScreenS2C;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
@@ -23,5 +24,7 @@ public class EzpasClient implements ClientModInitializer {
         }
 
         ScreenRegistry.<FilteredPipeScreenHandler, FilteredPipeScreen>register(Ezpas.FILTERED_PIPE_SCREEN_HANDLER_TYPE, (screenHandler, inv, text) -> new FilteredPipeScreen(screenHandler, inv));
+
+        OpenAdvancedFilterScreenS2C.register();
     }
 }

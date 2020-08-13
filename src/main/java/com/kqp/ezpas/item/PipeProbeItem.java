@@ -1,15 +1,16 @@
 package com.kqp.ezpas.item;
 
-import com.kqp.ezpas.block.FilteredPipeBlock;
+import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
+import com.kqp.ezpas.network.OpenAdvancedFilterScreenS2C;
 import com.kqp.ezpas.pipe.InsertionPoint;
 import com.kqp.ezpas.pipe.filter.Filter;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.resource.language.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
@@ -79,6 +80,12 @@ public class PipeProbeItem extends Item {
                         }
                     }
                 }
+            } else if (be instanceof FilteredPipeBlockEntity) {
+                OpenAdvancedFilterScreenS2C.sendToPlayer(
+                        (ServerPlayerEntity) context.getPlayer(),
+                        context.getBlockPos(),
+                        ((FilteredPipeBlockEntity) be).flags
+                );
             }
         }
 

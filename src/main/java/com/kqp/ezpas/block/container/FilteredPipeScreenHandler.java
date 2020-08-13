@@ -8,22 +8,18 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.math.BlockPos;
 
 public class FilteredPipeScreenHandler extends ScreenHandler {
     public PlayerInventory playerInventory;
     public Inventory inventory;
     public FilteredPipeBlock.Type type;
-    public BlockPos blockPos;
-    public boolean persist;
 
-    public FilteredPipeScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, FilteredPipeBlock.Type type, boolean persist) {
+    public FilteredPipeScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, FilteredPipeBlock.Type type) {
         super(Ezpas.FILTERED_PIPE_SCREEN_HANDLER_TYPE, syncId);
 
         this.playerInventory = playerInventory;
         this.inventory = inventory;
         this.type = type;
-        this.persist = persist;
 
         checkSize(inventory, 9);
         inventory.onOpen(playerInventory.player);

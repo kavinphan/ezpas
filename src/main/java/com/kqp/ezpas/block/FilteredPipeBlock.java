@@ -1,12 +1,15 @@
 package com.kqp.ezpas.block;
 
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
+import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
 import com.kqp.ezpas.init.Ezpas;
 import net.fabricmc.fabric.api.container.ContainerProviderRegistry;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.screen.NamedScreenHandlerFactory;
@@ -16,10 +19,13 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+
+import java.util.HashSet;
 
 public class FilteredPipeBlock extends PipeBlock implements BlockEntityProvider {
     public final Type type;
@@ -70,7 +76,11 @@ public class FilteredPipeBlock extends PipeBlock implements BlockEntityProvider 
             BlockEntity be = world.getBlockEntity(pos);
 
             if (be instanceof FilteredPipeBlockEntity) {
-                ((ServerPlayerEntity) player).openHandledScreen((FilteredPipeBlockEntity) be);
+                if (player.getEquippedStack(EquipmentSlot.MAINHAND).getItem() == Ezpas.PIPE_PROBE) {
+                    return ActionResult.PASS;
+                }
+
+                player.openHandledScreen((FilteredPipeBlockEntity) be);
             }
         }
 
