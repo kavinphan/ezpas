@@ -21,26 +21,28 @@ public class FilteredPipeScreenHandler extends ScreenHandler {
         this.inventory = inventory;
         this.type = type;
 
-        checkSize(inventory, 9);
+        checkSize(inventory, 27);
         inventory.onOpen(playerInventory.player);
 
         int i;
         int j;
 
         // Filtered pipe inventory
-        for (i = 0; i < 9; i++) {
-            this.addSlot(new Slot(inventory, i, 8 + i * 18, 52));
+        for (i = 0; i < 3; i++) {
+            for (j = 0; j < 9; j++) {
+                this.addSlot(new Slot(inventory, i * 9 + j, 8 + j * 18, 18 + i * 18));
+            }
         }
 
         // Player inventory
         for (j = 0; j < 3; ++j) {
             for (int l = 0; l < 9; ++l) {
-                this.addSlot(new Slot(playerInventory, l + j * 9 + 9, 8 + l * 18, j * 18 + 83));
+                this.addSlot(new Slot(playerInventory, l + j * 9 + 9, 8 + l * 18, j * 18 + 86));
             }
         }
 
         for (j = 0; j < 9; ++j) {
-            this.addSlot(new Slot(playerInventory, j, 8 + j * 18, 141));
+            this.addSlot(new Slot(playerInventory, j, 8 + j * 18, 144));
         }
     }
 
