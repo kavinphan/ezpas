@@ -28,16 +28,21 @@ public class Filter {
         // Equality checks must equal this condition for the stack to pass
         boolean passingEqualityCondition = type == FilteredPipeBlock.Type.WHITELIST;
 
-        boolean checkFlags = false;
+        boolean doBasicCheck = true;
 
         for (int i = 0; i < flags.length; i++) {
-            if (flags[i]) {
-                checkFlags = true;
-                break;
+            // Some flags don't affect normal checking behavior
+            if (i != FilteredPipeBlockEntity.PERSIST_FLAG
+                    && i != FilteredPipeBlockEntity.OR_AND_FLAG
+                    && i != FilteredPipeBlockEntity.REDSTONE_DISABLE_FLAG) {
+                if (flags[i]) {
+                    doBasicCheck = false;
+                    break;
+                }
             }
         }
 
-        if (!checkFlags) {
+        if (doBasicCheck) {
             boolean passes = !getSameItemStacks(queryStack.getItem()).isEmpty();
 
             return passes == passingEqualityCondition;
