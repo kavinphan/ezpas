@@ -33,6 +33,7 @@ public class Filter {
 
         boolean useOr = flags[FilteredPipeBlockEntity.OR_AND_FLAG];
 
+        List<Boolean> flagPasses = new ArrayList();
         List<Boolean> queryStackParityPasses = new ArrayList();
 
         if (flags[FilteredPipeBlockEntity.MATCH_MOD_FLAG]) {
@@ -46,6 +47,7 @@ public class Filter {
             boolean passes = validNamespaces.contains(Registry.ITEM.getId(queryStack.getItem()).getNamespace());
 
             queryStackParityPasses.add(passes);
+            flagPasses.add(passes);
         }
 
         if (flags[FilteredPipeBlockEntity.MATCH_ITEM_TAG_FLAG]) {
@@ -61,7 +63,10 @@ public class Filter {
             Set<Identifier> queryTagIds = new HashSet(getTagIdsFor(queryStack.getItem()));
 
             // If there is an intersection then there are common tags, which is a pass
-            queryStackParityPasses.add(!Sets.intersection(filterTagIds, queryTagIds).isEmpty());
+            boolean passes = !Sets.intersection(filterTagIds, queryTagIds).isEmpty();
+
+            queryStackParityPasses.add(passes);
+            flagPasses.add(passes);
         }
 
         if (queryStackParityPasses.isEmpty()) {
@@ -76,8 +81,6 @@ public class Filter {
             return !passingEqualityCondition;
         }
 
-        List<Boolean> passes = new ArrayList();
-
         if (flags[FilteredPipeBlockEntity.MATCH_NBT_FLAG]) {
             boolean matched = false;
 
@@ -90,7 +93,7 @@ public class Filter {
                 }
             }
 
-            passes.add(matched);
+            flagPasses.add(matched);
         }
 
         if (flags[FilteredPipeBlockEntity.MATCH_CUSTOM_NAME_FLAG]) {
@@ -103,7 +106,7 @@ public class Filter {
                 }
             }
 
-            passes.add(found);
+            flagPasses.add(found);
         }
 
         if (flags[FilteredPipeBlockEntity.MATCH_DAMAGE_FLAG]) {
@@ -116,7 +119,7 @@ public class Filter {
                 }
             }
 
-            passes.add(matched);
+            flagPasses.add(matched);
         }
 
         if (flags[FilteredPipeBlockEntity.ONE_IN_INV_FLAG]) {
@@ -131,7 +134,7 @@ public class Filter {
                 }
             }
 
-            passes.add(found);
+            flagPasses.add(found);
         }
 
         if (flags[FilteredPipeBlockEntity.MAINTAIN_COUNTS_FLAG]) {
@@ -152,10 +155,10 @@ public class Filter {
                 }
             }
 
-            passes.add(needed > 0);
+            flagPasses.add(needed > 0);
         }
 
-        return evaluateBooleanList(passes, useOr) == passingEqualityCondition;
+        return evaluateBooleanList(flagPasses, useOr) == passingEqualityCondition;
     }
 
     private static boolean evaluateBooleanList(List<Boolean> booleans, boolean useOr) {
