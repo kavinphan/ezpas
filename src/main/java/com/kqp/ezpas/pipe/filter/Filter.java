@@ -28,25 +28,12 @@ public class Filter {
         // Equality checks must equal this condition for the stack to pass
         boolean passingEqualityCondition = type == FilteredPipeBlock.Type.WHITELIST;
 
-        boolean doBasicCheck = true;
+        // Gather non-empty stacks
+        List<ItemStack> filterStacks = getSameItemStacks(queryStack.getItem());
 
-        for (int i = 0; i < flags.length; i++) {
-            // Some flags don't affect normal checking behavior
-            if (i != FilteredPipeBlockEntity.PERSIST_FLAG
-                    && i != FilteredPipeBlockEntity.OR_AND_FLAG
-                    && i != FilteredPipeBlockEntity.REDSTONE_DISABLE_FLAG) {
-                if (flags[i]) {
-                    doBasicCheck = false;
-                    break;
-                }
-            }
-        }
+        boolean useOr = flags[FilteredPipeBlockEntity.OR_AND_FLAG];
 
-        if (doBasicCheck) {
-            boolean passes = !getSameItemStacks(queryStack.getItem()).isEmpty();
-
-            return passes == passingEqualityCondition;
-        }
+        List<Boolean> queryStackParityPasses = new ArrayList();
 
         if (flags[FilteredPipeBlockEntity.MATCH_MOD_FLAG]) {
             Set<String> validNamespaces = itemStacks.stream()
@@ -58,14 +45,8 @@ public class Filter {
 
             boolean passes = validNamespaces.contains(Registry.ITEM.getId(queryStack.getItem()).getNamespace());
 
-            return passes == passingEqualityCondition;
+            queryStackParityPasses.add(passes);
         }
-
-        // Gather non-empty stacks
-        List<ItemStack> filterStacks = getSameItemStacks(queryStack.getItem());
-
-        boolean useOr = flags[FilteredPipeBlockEntity.OR_AND_FLAG];
-        List<Boolean> passes = new ArrayList();
 
         if (flags[FilteredPipeBlockEntity.MATCH_ITEM_TAG_FLAG]) {
             // Gather tag IDs of the filter stacks
@@ -80,8 +61,22 @@ public class Filter {
             Set<Identifier> queryTagIds = new HashSet(getTagIdsFor(queryStack.getItem()));
 
             // If there is an intersection then there are common tags, which is a pass
-            passes.add(!Sets.intersection(filterTagIds, queryTagIds).isEmpty());
+            queryStackParityPasses.add(!Sets.intersection(filterTagIds, queryTagIds).isEmpty());
         }
+
+        if (queryStackParityPasses.isEmpty()) {
+            boolean passes = !getSameItemStacks(queryStack.getItem()).isEmpty();
+
+            queryStackParityPasses.add(passes);
+        }
+
+        boolean queryStackParity = evaluateBooleanList(queryStackParityPasses, useOr);
+
+        if (!queryStackParity) {
+            return !passingEqualityCondition;
+        }
+
+        List<Boolean> passes = new ArrayList();
 
         if (flags[FilteredPipeBlockEntity.MATCH_NBT_FLAG]) {
             boolean matched = false;
@@ -158,27 +153,27 @@ public class Filter {
             passes.add(needed > 0);
         }
 
-        boolean finalPass = true;
+        return evaluateBooleanList(passes, useOr) == passingEqualityCondition;
+    }
 
-        if (useOr) {
-            finalPass = false;
+    private static boolean evaluateBooleanList(List<Boolean> booleans, boolean useOr) {
+        if (booleans.size() == 0) {
+            return true;
+        } else if (booleans.size() == 1) {
+            return booleans.get(0);
         }
 
-        for (Boolean pass : passes) {
-            if (pass) {
-                if (useOr) {
-                    finalPass = true;
-                    break;
-                }
+        boolean returnValue = booleans.get(0);
+
+        for (int i = 1; i < booleans.size(); i++) {
+            if (useOr) {
+                returnValue |= booleans.get(i);
             } else {
-                if (!useOr) {
-                    finalPass = false;
-                    break;
-                }
+                returnValue &= booleans.get(i);
             }
         }
 
-        return finalPass == passingEqualityCondition;
+        return returnValue;
     }
 
     private static List<Identifier> getTagIdsFor(Item item) {
