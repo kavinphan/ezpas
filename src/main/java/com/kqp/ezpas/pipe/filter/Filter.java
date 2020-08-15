@@ -81,10 +81,12 @@ public class Filter {
         if (flags[FilteredPipeBlockEntity.MATCH_NBT_FLAG]) {
             boolean matched = false;
 
-            for (ItemStack filterStack : filterStacks) {
-                if (filterStack.getTag().equals(queryStack.getTag())) {
-                    matched = true;
-                    break;
+            if (queryStack.getTag() != null) {
+                for (ItemStack filterStack : filterStacks) {
+                    if (filterStack.getTag() != null && filterStack.getTag().equals(queryStack.getTag())) {
+                        matched = true;
+                        break;
+                    }
                 }
             }
 
