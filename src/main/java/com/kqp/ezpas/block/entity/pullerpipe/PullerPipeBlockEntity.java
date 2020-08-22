@@ -374,6 +374,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                     calculateInsertionPoints(inventoryList, blockPos.offset(searchDirection), searchDirection, pathMap, newPath);
                 }
             } else if (!(prevBlock instanceof RigidPipeBlock) && getInventoryAt(world, blockPos) != null) {
+                Path newPath = Path.from(path);
+
                 // Add non-persistent filtered pipes
                 if (prevBlock instanceof FilteredPipeBlock) {
                     BlockEntity be = world.getBlockEntity(prevBlockPos);
@@ -384,13 +386,13 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
                         if (!redstoneDisableFlag || (redstoneDisableFlag && !world.isReceivingRedstonePower(prevBlockPos))) {
                             if (!filteredPipeBlockEntity.flags[FilteredPipeBlockEntity.PERSIST_FLAG]) {
-                                path.filters.add(new Filter(filteredPipeBlockEntity));
+                                newPath.filters.add(new Filter(filteredPipeBlockEntity));
                             }
                         }
                     }
                 }
 
-                InsertionPoint newInventory = new InsertionPoint(blockPos, direction.getOpposite(), path.filters, path.priority, path.visited.size());
+                InsertionPoint newInventory = new InsertionPoint(blockPos, direction.getOpposite(), newPath.filters, newPath.priority, newPath.visited.size());
 
                 // Check if there's a similar path already
                 int index = prioritizedInsertionPoints.indexOf(newInventory);
