@@ -55,12 +55,12 @@ public class Filter {
             Set<Identifier> filterTagIds = itemStacks.stream()
                     .filter(itemStack -> !itemStack.isEmpty())
                     .map(ItemStack::getItem)
-                    .map(Filter::getTagIdsFor)
+                    .map(item -> ItemTags.getTagGroup().getTagsFor(item))
                     .flatMap(Collection::stream)
                     .collect(Collectors.toSet());
 
             // Gather tag IDs of query stack
-            Set<Identifier> queryTagIds = new HashSet(getTagIdsFor(queryStack.getItem()));
+            Set<Identifier> queryTagIds = new HashSet(ItemTags.getTagGroup().getTagsFor(queryStack.getItem()));
 
             // If there is an intersection then there are common tags, which is a pass
             boolean passes = !Sets.intersection(filterTagIds, queryTagIds).isEmpty();
@@ -179,18 +179,6 @@ public class Filter {
         }
 
         return returnValue;
-    }
-
-    private static List<Identifier> getTagIdsFor(Item item) {
-        List<Identifier> tagIds = new ArrayList();
-
-        ItemTags.getContainer().getEntries().forEach((id, tag) -> {
-            if (tag.contains(item)) {
-                tagIds.add(id);
-            }
-        });
-
-        return tagIds;
     }
 
     private List<ItemStack> getSameItemStacks(Item item) {
