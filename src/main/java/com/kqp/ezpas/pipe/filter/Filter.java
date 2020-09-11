@@ -1,16 +1,17 @@
 package com.kqp.ezpas.pipe.filter;
 
-import com.google.common.collect.Sets;
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tag.ItemTags;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Filter {
@@ -50,6 +51,8 @@ public class Filter {
             flagPasses.add(passes);
         }
 
+        // Item tag matching is disabled for now, as it is not a suitable replacement for ore dict.
+        /*
         if (flags[FilteredPipeBlockEntity.MATCH_ITEM_TAG_FLAG]) {
             // Gather tag IDs of the filter stacks
             Set<Identifier> filterTagIds = itemStacks.stream()
@@ -68,6 +71,7 @@ public class Filter {
             queryStackParityPasses.add(passes);
             flagPasses.add(passes);
         }
+         */
 
         if (queryStackParityPasses.isEmpty()) {
             boolean passes = !getSameItemStacks(queryStack.getItem()).isEmpty();
