@@ -40,7 +40,7 @@
     "container.filtered_pipe.advanced.flag.current_state": "Current State: ",
     "container.filtered_pipe.advanced.flag0.help": "Persist to other pipes",
     "container.filtered_pipe.advanced.flag1.help": "OR Evaluation instead of AND",
-    "container.filtered_pipe.advanced.flag2.help": "Match Item Tag",
+    "container.filtered_pipe.advanced.flag2.help": "Match Item Tag (does nothing)",
     "container.filtered_pipe.advanced.flag3.help": "Match NBT",
     "container.filtered_pipe.advanced.flag4.help": "Match Custom Name",
     "container.filtered_pipe.advanced.flag5.help": "Match Damage",
