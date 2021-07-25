@@ -43,7 +43,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     public PullerPipeBlockEntity(BlockEntityType type, int speed, int extractionRate, int subTickRate) {
         super(type);
 
-        prioritizedInsertionPoints = new ArrayList();
+        this.prioritizedInsertionPoints = new ArrayList<>();
 
         this.speed = speed;
         this.extractionRate = extractionRate;
@@ -71,10 +71,11 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
     @Override
     public void tick() {
-        if (!this.world.isClient) {
+        assert this.world != null;
+
+        if (!this.world.isClient()) {
             if (shouldRecalculate) {
                 this.calculateInsertionPoints();
-
                 shouldRecalculate = false;
             }
 
@@ -102,7 +103,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
      * make an extraction, it exits the method and bumps the priority.
      */
     public void doExtraction() {
-        if (prioritizedInsertionPoints.isEmpty()) {
+        if (this.prioritizedInsertionPoints.isEmpty()) {
             return;
         }
 
@@ -266,9 +267,9 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                 }
             }
 
+
             sanitizeSlot(from, extractionSlot);
             sanitizeSlot(to, insertionSlot);
-
             return true;
         }
 
@@ -358,7 +359,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
                     newPath.priority++;
                 }
 
-                List<Path> pathList = pathMap.computeIfAbsent(blockPos, x -> new ArrayList());
+                List<Path> pathList = pathMap.computeIfAbsent(blockPos, x -> new ArrayList<>());
 
                 for (Path queryPath : pathList) {
                     if (queryPath.filters.equals(newPath.filters) || queryPath.priority <= newPath.priority) {

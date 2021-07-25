@@ -2,7 +2,7 @@ package com.kqp.ezpas.block;
 
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
-import net.fabricmc.fabric.api.block.FabricBlockSettings;
+import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("deprecation")
 public class PipeBlock extends Block {
     public static final BooleanProperty NORTH = BooleanProperty.of("north");
     public static final BooleanProperty EAST = BooleanProperty.of("east");
@@ -35,7 +36,7 @@ public class PipeBlock extends Block {
     public static final BooleanProperty UP = BooleanProperty.of("up");
     public static final BooleanProperty DOWN = BooleanProperty.of("down");
 
-    public static final Map<Direction, BooleanProperty> PROP_MAP = Util.make(new HashMap(), map -> {
+    public static final Map<Direction, BooleanProperty> PROP_MAP = Util.make(new HashMap<>(), map -> {
         map.put(Direction.NORTH, NORTH);
         map.put(Direction.EAST, EAST);
         map.put(Direction.SOUTH, SOUTH);
@@ -47,7 +48,7 @@ public class PipeBlock extends Block {
     private final ShapeUtil shapeUtil;
 
     public  PipeBlock() {
-        super(FabricBlockSettings.of(Material.GLASS).strength(0.3F, 0.3F).sounds(BlockSoundGroup.GLASS).nonOpaque().build());
+        super(FabricBlockSettings.of(Material.GLASS).strength(0.3F, 0.3F).sounds(BlockSoundGroup.GLASS).nonOpaque());
 
         this.setDefaultState(this.getStateManager().getDefaultState()
                 .with(NORTH, false)
@@ -79,7 +80,7 @@ public class PipeBlock extends Block {
 
     @Override
     public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, WorldAccess world, BlockPos pos, BlockPos posFrom) {
-        PullerPipeBlockEntity.updatePullerPipes(world, pos, direction, new HashSet());
+        PullerPipeBlockEntity.updatePullerPipes(world, pos, direction, new HashSet<>());
 
         Boolean value = isConnectable(world, posFrom, direction.getOpposite());
         return state.with(getProperty(direction), value);
