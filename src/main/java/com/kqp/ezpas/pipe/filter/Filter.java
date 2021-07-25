@@ -184,7 +184,7 @@ public class Filter {
     private static List<Identifier> getTagIdsFor(Item item) {
         List<Identifier> tagIds = new ArrayList();
 
-        ItemTags.getContainer().getEntries().forEach((id, tag) -> {
+        ItemTags.getTagGroup().getTags().forEach((id, tag) -> {
             if (tag.contains(item)) {
                 tagIds.add(id);
             }
