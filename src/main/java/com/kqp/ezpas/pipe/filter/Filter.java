@@ -33,8 +33,8 @@ public class Filter {
 
         boolean useOr = flags[FilteredPipeBlockEntity.OR_AND_FLAG];
 
-        List<Boolean> flagPasses = new ArrayList();
-        List<Boolean> queryStackParityPasses = new ArrayList();
+        List<Boolean> flagPasses = new ArrayList<>();
+        List<Boolean> queryStackParityPasses = new ArrayList<>();
 
         if (flags[FilteredPipeBlockEntity.MATCH_MOD_FLAG]) {
             Set<String> validNamespaces = itemStacks.stream()
@@ -60,7 +60,7 @@ public class Filter {
                     .collect(Collectors.toSet());
 
             // Gather tag IDs of query stack
-            Set<Identifier> queryTagIds = new HashSet(getTagIdsFor(queryStack.getItem()));
+            Set<Identifier> queryTagIds = new HashSet<>(getTagIdsFor(queryStack.getItem()));
 
             // If there is an intersection then there are common tags, which is a pass
             boolean passes = !Sets.intersection(filterTagIds, queryTagIds).isEmpty();
@@ -182,7 +182,7 @@ public class Filter {
     }
 
     private static List<Identifier> getTagIdsFor(Item item) {
-        List<Identifier> tagIds = new ArrayList();
+        List<Identifier> tagIds = new ArrayList<>();
 
         ItemTags.getTagGroup().getTags().forEach((id, tag) -> {
             if (tag.contains(item)) {
@@ -203,7 +203,7 @@ public class Filter {
         if (o == null || getClass() != o.getClass()) return false;
         Filter filter = (Filter) o;
         return type == filter.type &&
-                flags.equals(filter.flags) &&
+                Arrays.equals(flags, filter.flags) &&
                 Objects.equals(
                         itemStacks.stream().map(ComparableItemStack::new).collect(Collectors.toSet()),
                         filter.itemStacks.stream().map(ComparableItemStack::new).collect(Collectors.toSet())
@@ -212,6 +212,6 @@ public class Filter {
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, flags, itemStacks.stream().map(ComparableItemStack::new).collect(Collectors.toSet()));
+        return Objects.hash(type, Arrays.hashCode(flags), itemStacks.stream().map(ComparableItemStack::new).collect(Collectors.toSet()));
     }
 }
