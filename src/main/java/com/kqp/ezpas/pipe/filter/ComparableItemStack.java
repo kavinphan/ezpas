@@ -25,7 +25,7 @@ public class ComparableItemStack {
         return Objects.hash(
                 Registry.ITEM.getId(itemStack.getItem()),
                 itemStack.getCount(),
-                itemStack.getOrCreateTag()
+                itemStack.getOrCreateNbt()
         );
     }
 }

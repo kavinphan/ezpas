@@ -84,9 +84,9 @@ public class Filter {
         if (flags[FilteredPipeBlockEntity.MATCH_NBT_FLAG]) {
             boolean matched = false;
 
-            if (queryStack.getTag() != null) {
+            if (queryStack.getNbt() != null) {
                 for (ItemStack filterStack : filterStacks) {
-                    if (filterStack.getTag() != null && filterStack.getTag().equals(queryStack.getTag())) {
+                    if (filterStack.getNbt() != null && filterStack.getNbt().equals(queryStack.getNbt())) {
                         matched = true;
                         break;
                     }

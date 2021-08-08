@@ -3,13 +3,12 @@ package com.kqp.ezpas.client.screen;
 import com.kqp.ezpas.init.Ezpas;
 import com.kqp.ezpas.network.SetAdvancedFilterFlagC2S;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
@@ -67,7 +66,7 @@ public class AdvancedFilterScreen extends Screen {
                         }
                 );
 
-                this.addButton(buttons[index]);
+                this.addDrawableChild(buttons[index]);
             }
         }
     }
@@ -102,9 +101,9 @@ public class AdvancedFilterScreen extends Screen {
     }
 
     protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-
-        MinecraftClient.getInstance().getTextureManager().bindTexture(TEXTURE);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, TEXTURE);
 
         int x = (this.width - this.backgroundWidth) / 2;
         int y = (this.height - this.backgroundHeight) / 2;
@@ -121,7 +120,7 @@ public class AdvancedFilterScreen extends Screen {
     public void tick() {
         super.tick();
 
-        if (!this.client.player.isAlive() || this.client.player.removed) {
+        if (!this.client.player.isAlive() || this.client.player.isRemoved()) {
             this.client.player.closeScreen();
         }
     }

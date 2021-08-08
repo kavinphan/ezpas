@@ -11,6 +11,7 @@ import com.kqp.ezpas.block.pullerpipe.*;
 import com.kqp.ezpas.item.PipeProbeItem;
 import com.kqp.ezpas.network.SetAdvancedFilterFlagC2S;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
@@ -36,22 +37,22 @@ public class Ezpas implements ModInitializer {
     public static final Block ENDER_PP = register("ender_puller_pipe", new EnderPullerPipeBlock());
 
     public static BlockEntityType<IronPullerPipeBlockEntity> IRON_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("iron_puller_pipe"),
-            BlockEntityType.Builder.create(IronPullerPipeBlockEntity::new, IRON_PP).build(null));
+            FabricBlockEntityTypeBuilder.create(IronPullerPipeBlockEntity::new, IRON_PP).build(null));
 
     public static BlockEntityType<GoldPullerPipeBlockEntity> GOLD_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("gold_puller_pipe"),
-            BlockEntityType.Builder.create(GoldPullerPipeBlockEntity::new, GOLD_PP).build(null));
+            FabricBlockEntityTypeBuilder.create(GoldPullerPipeBlockEntity::new, GOLD_PP).build(null));
 
     public static BlockEntityType<DiamondPullerPipeBlockEntity> DIAMOND_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("diamond_puller_pipe"),
-            BlockEntityType.Builder.create(DiamondPullerPipeBlockEntity::new, DIAMOND_PP).build(null));
+            FabricBlockEntityTypeBuilder.create(DiamondPullerPipeBlockEntity::new, DIAMOND_PP).build(null));
 
     public static BlockEntityType<NetheritePullerPipeBlockEntity> NETHERITE_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("netherite_puller_pipe"),
-            BlockEntityType.Builder.create(NetheritePullerPipeBlockEntity::new, NETHERITE_PP).build(null));
+            FabricBlockEntityTypeBuilder.create(NetheritePullerPipeBlockEntity::new, NETHERITE_PP).build(null));
 
     public static BlockEntityType<EnderPullerPipeBlockEntity> ENDER_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("ender_puller_pipe"),
-            BlockEntityType.Builder.create(EnderPullerPipeBlockEntity::new, ENDER_PP).build(null));
+            FabricBlockEntityTypeBuilder.create(EnderPullerPipeBlockEntity::new, ENDER_PP).build(null));
 
     public static BlockEntityType<FilteredPipeBlockEntity> FILTERED_PIPE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("filtered_pipe"),
-            BlockEntityType.Builder.create(FilteredPipeBlockEntity::new, ENDER_PP).build(null));
+            FabricBlockEntityTypeBuilder.create(FilteredPipeBlockEntity::new, ENDER_PP).build(null));
 
     public static final Block PIPE = register("pipe", new PipeBlock());
     public static final Block DENSE_PIPE = register("dense_pipe", new PipeBlock());

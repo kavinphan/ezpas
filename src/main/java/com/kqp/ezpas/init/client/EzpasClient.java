@@ -32,6 +32,6 @@ public class EzpasClient implements ClientModInitializer {
     }
 
     public static void openAdvancedFilterScreen(BlockPos blockPos, boolean[] flags) {
-        MinecraftClient.getInstance().openScreen(new AdvancedFilterScreen(blockPos, flags));
+        MinecraftClient.getInstance().setScreen(new AdvancedFilterScreen(blockPos, flags));
     }
 }

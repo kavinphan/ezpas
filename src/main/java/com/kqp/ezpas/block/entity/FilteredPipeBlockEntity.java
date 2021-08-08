@@ -11,13 +11,14 @@ import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 
 import java.util.HashSet;
@@ -38,8 +39,8 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
 
     public boolean[] flags = new boolean[20];
 
-    public FilteredPipeBlockEntity() {
-        super(Ezpas.FILTERED_PIPE_BLOCK_ENTITY);
+    public FilteredPipeBlockEntity(BlockPos pos, BlockState state) {
+        super(Ezpas.FILTERED_PIPE_BLOCK_ENTITY, pos, state);
 
         this.inventory = DefaultedList.ofSize(27, ItemStack.EMPTY);
     }
@@ -66,13 +67,13 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
     }
 
     @Override
-    public void fromTag(BlockState bs, CompoundTag tag) {
-        super.fromTag(bs, tag);
+    public void readNbt( NbtCompound tag) {
+        super.readNbt(tag);
 
         this.inventory = DefaultedList.ofSize(this.size(), ItemStack.EMPTY);
 
         if (!this.deserializeLootTable(tag)) {
-            Inventories.fromTag(tag, this.inventory);
+            Inventories.readNbt(tag, this.inventory);
         }
 
         for (int i = 0; i < flags.length; i++) {
@@ -81,11 +82,11 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
     }
 
     @Override
-    public CompoundTag toTag(CompoundTag tag) {
-        super.toTag(tag);
+    public NbtCompound writeNbt(NbtCompound tag) {
+        super.writeNbt(tag);
 
         if (!this.serializeLootTable(tag)) {
-            Inventories.toTag(tag, this.inventory);
+            Inventories.writeNbt(tag, this.inventory);
         }
 
         for (int i = 0; i < flags.length; i++) {

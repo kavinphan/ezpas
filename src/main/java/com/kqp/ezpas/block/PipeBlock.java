@@ -18,14 +18,10 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
-import net.minecraft.world.WorldAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("deprecation")
 public class PipeBlock extends Block {
@@ -47,7 +43,7 @@ public class PipeBlock extends Block {
 
     private final ShapeUtil shapeUtil;
 
-    public  PipeBlock() {
+    public PipeBlock() {
         super(FabricBlockSettings.of(Material.GLASS).strength(0.3F, 0.3F).sounds(BlockSoundGroup.GLASS).nonOpaque());
 
         this.setDefaultState(this.getStateManager().getDefaultState()
@@ -116,6 +112,7 @@ public class PipeBlock extends Block {
     /**
      * Thanks Tech Reborn :)
      * Slightly modified for my purposes, but most of it is thanks to the Tech Reborn peeps.
+     *
      * <p>
      * Copyright (c) 2020 TechReborn
      * <p>
@@ -164,7 +161,7 @@ public class PipeBlock extends Block {
                     double z = dir == Direction.NORTH ? 0 : dir == Direction.SOUTH ? 16D : size;
                     double y = dir == Direction.DOWN ? 0 : dir == Direction.UP ? 16D : size;
 
-                    VoxelShape shape = Block.createCuboidShape(x, y, z, 16.0D - size, 16.0D - size, 16.0D - size);
+                    VoxelShape shape = VoxelShapes.cuboidUnchecked(x, y, z, 16.0D - size, 16.0D - size, 16.0D - size);
                     connections.add(shape);
                 }
             }

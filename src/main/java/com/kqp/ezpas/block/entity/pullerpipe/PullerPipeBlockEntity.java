@@ -6,9 +6,9 @@ import com.kqp.ezpas.block.PipeBlock;
 import com.kqp.ezpas.block.RigidPipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
+import com.kqp.ezpas.init.Ezpas;
 import com.kqp.ezpas.pipe.InsertionPoint;
 import com.kqp.ezpas.pipe.filter.Filter;
-import com.kqp.ezpas.init.Ezpas;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
@@ -17,8 +17,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.Tickable;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
@@ -27,7 +26,7 @@ import net.minecraft.world.WorldAccess;
 import java.util.*;
 import java.util.stream.IntStream;
 
-public abstract class PullerPipeBlockEntity extends BlockEntity implements Tickable {
+public abstract class PullerPipeBlockEntity extends BlockEntity {
     private List<PrioritizedList<InsertionPoint>> prioritizedInsertionPoints;
 
     private boolean shouldRecalculate = true;
@@ -40,8 +39,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     public final int extractionRate;
     public final int subTickRate;
 
-    public PullerPipeBlockEntity(BlockEntityType type, int speed, int extractionRate, int subTickRate) {
-        super(type);
+    public PullerPipeBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, int speed, int extractionRate, int subTickRate) {
+        super(type, pos, state);
 
         this.prioritizedInsertionPoints = new ArrayList<>();
 
@@ -51,16 +50,16 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     }
 
     @Override
-    public void fromTag(BlockState bs, CompoundTag tag) {
-        super.fromTag(bs, tag);
+    public void readNbt(NbtCompound tag) {
+        super.readNbt(tag);
         this.rrCounter = tag.getInt("RoundRobinCounter");
         this.coolDown = tag.getInt("ExtractCoolDown");
         this.currentPriority = tag.getInt("CurrentPriority");
     }
 
     @Override
-    public CompoundTag toTag(CompoundTag tag) {
-        super.toTag(tag);
+    public NbtCompound writeNbt(NbtCompound tag) {
+        super.writeNbt(tag);
 
         tag.putInt("RoundRobinCounter", rrCounter);
         tag.putInt("ExtractCoolDown", coolDown);
@@ -69,28 +68,25 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
         return tag;
     }
 
-    @Override
-    public void tick() {
-        assert this.world != null;
-
-        if (!this.world.isClient()) {
-            if (shouldRecalculate) {
-                this.calculateInsertionPoints();
-                shouldRecalculate = false;
+    public static void tick(World world, BlockPos pos, BlockState state, PullerPipeBlockEntity blockEntity) {
+        if (!world.isClient()) {
+            if (blockEntity.shouldRecalculate) {
+                blockEntity.calculateInsertionPoints();
+                blockEntity.shouldRecalculate = false;
             }
 
-            if (!this.world.isReceivingRedstonePower(pos)) {
-                if (coolDown <= 0) {
-                    for (int i = 0; i < subTickRate; i++) {
-                        doExtraction();
+            if (!blockEntity.world.isReceivingRedstonePower(pos)) {
+                if (blockEntity.coolDown <= 0) {
+                    for (int i = 0; i < blockEntity.subTickRate; i++) {
+                        blockEntity.doExtraction();
                     }
 
-                    coolDown = speed;
+                    blockEntity.coolDown = blockEntity.speed;
                 } else {
-                    coolDown = Math.max(0, coolDown - 1);
+                    blockEntity.coolDown = Math.max(0, blockEntity.coolDown - 1);
                 }
             } else {
-                coolDown = speed;
+                blockEntity.coolDown = blockEntity.speed;
             }
         }
     }
@@ -436,7 +432,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
         if (block instanceof InventoryProvider) {
             inventory = ((InventoryProvider) block).getInventory(blockState, world, blockPos);
-        } else if (block.hasBlockEntity()) {
+        } else if (block instanceof BlockWithEntity) {
             BlockEntity blockEntity = world.getBlockEntity(blockPos);
 
             if (blockEntity instanceof Inventory) {
@@ -487,14 +483,14 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
 
                         // canInsert doesn't check for item parity
                         if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0
-                                || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areTagsEqual(queryStack, stack))) {
+                                || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areNbtEqual(queryStack, stack))) {
                             return slot;
                         }
                     }
                 } else {
                     ItemStack queryStack = inv.getStack(slot);
                     if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0
-                            || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areTagsEqual(queryStack, stack))) {
+                            || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areNbtEqual(queryStack, stack))) {
                         return slot;
                     }
                 }

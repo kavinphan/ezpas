@@ -1,6 +1,7 @@
 package com.kqp.ezpas.block.pullerpipe;
 
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
+import com.kqp.ezpas.init.Ezpas;
 import net.fabricmc.fabric.api.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
@@ -9,6 +10,8 @@ import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.FacingBlock;
 import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityTicker;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
@@ -20,6 +23,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class PullerPipeBlock extends BlockWithEntity {
     public static final DirectionProperty FACING;
