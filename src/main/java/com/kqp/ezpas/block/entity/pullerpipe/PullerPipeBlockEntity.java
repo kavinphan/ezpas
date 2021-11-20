@@ -1,13 +1,14 @@
 package com.kqp.ezpas.block.entity.pullerpipe;
 
+import com.kqp.ezpas.Ezpas;
 import com.kqp.ezpas.block.ColoredPipeBlock;
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.PipeBlock;
 import com.kqp.ezpas.block.RigidPipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
-import com.kqp.ezpas.Ezpas;
 import com.kqp.ezpas.pipe.InsertionPoint;
+import com.kqp.ezpas.pipe.Path;
 import com.kqp.ezpas.pipe.filter.Filter;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
@@ -282,7 +283,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
 
         // Create initial path to prevent back-tracking
         Path initPath = new Path();
-        initPath.visited.add(this.pos);
+        initPath.addVisited(this.pos);
 
         // Create list of inventories
         List<InsertionPoint> newInventories = new ArrayList();
@@ -324,7 +325,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
      * Recursively build list of inventories.
      */
     private void calculateInsertionPoints(List<InsertionPoint> inventoryList, BlockPos blockPos, Direction direction, Map<BlockPos, List<Path>> pathMap, Path path) {
-        if (!path.visited.contains(blockPos)) {
+        if (!path.hasVisited(blockPos)) {
             Block queryBlock = world.getBlockState(blockPos).getBlock();
             BlockPos prevBlockPos = blockPos.offset(direction.getOpposite());
             Block prevBlock = world.getBlockState(prevBlockPos).getBlock();
@@ -335,8 +336,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
             }
 
             if (validPipeBranch) {
-                Path newPath = Path.from(path);
-                newPath.visited.add(blockPos);
+                Path newPath = new Path(path);
+                newPath.addVisited(blockPos);
 
                 if (queryBlock instanceof FilteredPipeBlock) {
                     BlockEntity be = world.getBlockEntity(blockPos);
@@ -347,7 +348,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
 
                         if (!redstoneDisableFlag || (redstoneDisableFlag && !world.isReceivingRedstonePower(blockPos))) {
                             if (filteredPipeBlockEntity.flags[FilteredPipeBlockEntity.PERSIST_FLAG]) {
-                                newPath.filters.add(new Filter(filteredPipeBlockEntity));
+                                newPath.addFilter(new Filter(filteredPipeBlockEntity));
                             }
                         }
                     }
@@ -358,7 +359,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
                 List<Path> pathList = pathMap.computeIfAbsent(blockPos, x -> new ArrayList<>());
 
                 for (Path queryPath : pathList) {
-                    if (queryPath.filters.equals(newPath.filters) || queryPath.priority <= newPath.priority) {
+                    if (queryPath.getFilters().equals(newPath.getFilters()) || queryPath.priority <= newPath.priority) {
                         return;
                     }
                 }
@@ -371,7 +372,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
                     calculateInsertionPoints(inventoryList, blockPos.offset(searchDirection), searchDirection, pathMap, newPath);
                 }
             } else if (!(prevBlock instanceof RigidPipeBlock) && getInventoryAt(world, blockPos) != null) {
-                Path newPath = Path.from(path);
+                Path newPath = new Path(path);
 
                 // Add non-persistent filtered pipes
                 if (prevBlock instanceof FilteredPipeBlock) {
@@ -383,13 +384,13 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
 
                         if (!redstoneDisableFlag || (redstoneDisableFlag && !world.isReceivingRedstonePower(prevBlockPos))) {
                             if (!filteredPipeBlockEntity.flags[FilteredPipeBlockEntity.PERSIST_FLAG]) {
-                                newPath.filters.add(new Filter(filteredPipeBlockEntity));
+                                newPath.addFilter(new Filter(filteredPipeBlockEntity));
                             }
                         }
                     }
                 }
 
-                InsertionPoint newInventory = new InsertionPoint(blockPos, direction.getOpposite(), newPath.filters, newPath.priority, newPath.visited.size());
+                InsertionPoint newInventory = new InsertionPoint(blockPos, direction.getOpposite(), newPath.getFilters(), newPath.priority, newPath.getVisitedCount());
 
                 // Check if there's a similar path already
                 int index = prioritizedInsertionPoints.indexOf(newInventory);
@@ -569,26 +570,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
 
         public PrioritizedList(int priority) {
             this.priority = priority;
-        }
-    }
-
-    public static class Path {
-        public final Set<BlockPos> visited;
-        public final List<Filter> filters;
-        public int priority = 0;
-
-        public Path() {
-            this.visited = new HashSet();
-            this.filters = new ArrayList();
-        }
-
-        public static Path from(Path oldPath) {
-            Path newPath = new Path();
-            newPath.visited.addAll(oldPath.visited);
-            newPath.filters.addAll(oldPath.filters);
-            newPath.priority = oldPath.priority;
-
-            return newPath;
         }
     }
 }
