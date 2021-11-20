@@ -30,6 +30,7 @@ public class Ezpas implements ModInitializer {
 
     public static final Item PIPE_PROBE = register("pipe_probe", new PipeProbeItem());
 
+    // haha PP
     public static final Block IRON_PP = register("iron_puller_pipe", new IronPullerPipeBlock());
     public static final Block GOLD_PP = register("gold_puller_pipe", new GoldPullerPipeBlock());
     public static final Block DIAMOND_PP = register("diamond_puller_pipe", new DiamondPullerPipeBlock());
