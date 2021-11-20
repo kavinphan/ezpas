@@ -1,7 +1,7 @@
 package com.kqp.ezpas.block;
 
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
-import com.kqp.ezpas.init.Ezpas;
+import com.kqp.ezpas.Ezpas;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;

@@ -1,7 +1,7 @@
 package com.kqp.ezpas.client.screen;
 
 import com.kqp.ezpas.block.container.FilteredPipeScreenHandler;
-import com.kqp.ezpas.init.Ezpas;
+import com.kqp.ezpas.Ezpas;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;

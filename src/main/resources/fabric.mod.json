@@ -15,10 +15,10 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "com.kqp.ezpas.init.Ezpas"
+      "com.kqp.ezpas.Ezpas"
     ],
     "client": [
-      "com.kqp.ezpas.init.client.EzpasClient"
+      "com.kqp.ezpas.client.EzpasClient"
     ]
   },
   "mixins": [

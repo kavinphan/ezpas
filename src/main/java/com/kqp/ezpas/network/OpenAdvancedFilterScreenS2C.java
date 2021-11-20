@@ -1,7 +1,7 @@
 package com.kqp.ezpas.network;
 
-import com.kqp.ezpas.init.Ezpas;
-import com.kqp.ezpas.init.client.EzpasClient;
+import com.kqp.ezpas.Ezpas;
+import com.kqp.ezpas.client.EzpasClient;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -29,10 +29,10 @@ public class OpenAdvancedFilterScreenS2C {
 
     @Environment(EnvType.CLIENT)
     public static void register() {
-        ClientPlayNetworking.registerReceiver(ID, (client, handler, buf, resSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(ID, (client, handler, buf, resSender) -> {
             BlockPos blockPos = buf.readBlockPos();
             int flagArrayLength = buf.readInt();
-            boolean flags[] = new boolean[flagArrayLength];
+            boolean[] flags = new boolean[flagArrayLength];
 
             for (int i = 0; i < flagArrayLength; i++) {
                 flags[i] = buf.readBoolean();

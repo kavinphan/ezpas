@@ -1,6 +1,6 @@
 package com.kqp.ezpas.block.entity.pullerpipe;
 
-import com.kqp.ezpas.init.Ezpas;
+import com.kqp.ezpas.Ezpas;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
 

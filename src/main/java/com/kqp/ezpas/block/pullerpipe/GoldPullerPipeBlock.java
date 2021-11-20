@@ -2,7 +2,7 @@ package com.kqp.ezpas.block.pullerpipe;
 
 import com.kqp.ezpas.block.entity.pullerpipe.GoldPullerPipeBlockEntity;
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
-import com.kqp.ezpas.init.Ezpas;
+import com.kqp.ezpas.Ezpas;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;

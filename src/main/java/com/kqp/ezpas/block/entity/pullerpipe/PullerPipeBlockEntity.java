@@ -6,7 +6,7 @@ import com.kqp.ezpas.block.PipeBlock;
 import com.kqp.ezpas.block.RigidPipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
-import com.kqp.ezpas.init.Ezpas;
+import com.kqp.ezpas.Ezpas;
 import com.kqp.ezpas.pipe.InsertionPoint;
 import com.kqp.ezpas.pipe.filter.Filter;
 import net.minecraft.block.*;

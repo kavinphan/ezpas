@@ -2,13 +2,12 @@ package com.kqp.ezpas.block.pullerpipe;
 
 import com.kqp.ezpas.block.entity.pullerpipe.DiamondPullerPipeBlockEntity;
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
-import com.kqp.ezpas.init.Ezpas;
+import com.kqp.ezpas.Ezpas;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.event.listener.GameEventListener;
 import org.jetbrains.annotations.Nullable;

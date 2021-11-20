@@ -1,7 +1,7 @@
 package com.kqp.ezpas.block.container;
 
 import com.kqp.ezpas.block.FilteredPipeBlock;
-import com.kqp.ezpas.init.Ezpas;
+import com.kqp.ezpas.Ezpas;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
