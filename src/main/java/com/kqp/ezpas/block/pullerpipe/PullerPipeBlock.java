@@ -1,7 +1,7 @@
 package com.kqp.ezpas.block.pullerpipe;
 
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
-import net.fabricmc.fabric.api.block.FabricBlockSettings;
+import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
@@ -25,7 +25,7 @@ public abstract class PullerPipeBlock extends BlockWithEntity {
     public static final DirectionProperty FACING;
 
     public PullerPipeBlock() {
-        super(FabricBlockSettings.of(Material.METAL).build());
+        super(FabricBlockSettings.of(Material.METAL));
 
         this.setDefaultState(this.stateManager.getDefaultState()
                 .with(FACING, Direction.NORTH)
