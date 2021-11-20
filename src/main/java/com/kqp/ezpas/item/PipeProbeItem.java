@@ -61,7 +61,7 @@ public class PipeProbeItem extends Item {
                                         inventory.blockPos.getZ()))
                         );
 
-                        send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.insert_direction.header").append(new TranslatableText("pipe_probe.insert_direction." + inventory.direction.asString()))));
+                        send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.insert_direction.header").append(new TranslatableText("pipe_probe.insert_direction." + inventory.side.asString()))));
                         send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.priority").append(new LiteralText("" + inventory.priority))));
                         send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.distance").append(new LiteralText("" + inventory.distance))));
 

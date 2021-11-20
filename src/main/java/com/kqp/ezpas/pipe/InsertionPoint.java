@@ -9,14 +9,14 @@ import java.util.Objects;
 
 public class InsertionPoint {
     public final BlockPos blockPos;
-    public final Direction direction;
+    public final Direction side;
     public final List<Filter> filters;
     public final int priority;
     public final int distance;
 
-    public InsertionPoint(BlockPos blockPos, Direction direction, List<Filter> filters, int priority, int distance) {
+    public InsertionPoint(BlockPos blockPos, Direction side, List<Filter> filters, int priority, int distance) {
         this.blockPos = blockPos;
-        this.direction = direction;
+        this.side = side;
         this.filters = filters;
         this.priority = priority;
         this.distance = distance;
@@ -24,14 +24,14 @@ public class InsertionPoint {
 
     @Override
     public int hashCode() {
-        return Objects.hash(blockPos.getX(), blockPos.getY(), blockPos.getZ(), direction.ordinal(), filters, priority);
+        return Objects.hash(blockPos.getX(), blockPos.getY(), blockPos.getZ(), side.ordinal(), filters, priority);
     }
 
     @Override
     public boolean equals(Object obj) {
         return obj instanceof InsertionPoint
                 && blockPos.equals(((InsertionPoint) obj).blockPos)
-                && direction.equals(((InsertionPoint) obj).direction)
+                && side.equals(((InsertionPoint) obj).side)
                 && filters.equals(((InsertionPoint) obj).filters)
                 && priority == ((InsertionPoint) obj).priority;
     }

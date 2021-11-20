@@ -19,10 +19,14 @@ public class Path {
         this(null);
     }
 
-    public Path(Path parent) {
+    private Path(Path parent) {
         this.parent = parent;
         this.visited = new HashSet<BlockPos>();
         this.filters = new ArrayList<Filter>();
+    }
+
+    public Path branch() {
+        return new Path(this);
     }
 
     public boolean hasVisited(BlockPos bp) {
