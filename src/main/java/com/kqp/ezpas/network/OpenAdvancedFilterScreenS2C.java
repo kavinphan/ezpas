@@ -1,14 +1,12 @@
 package com.kqp.ezpas.network;
 
-import com.kqp.ezpas.client.screen.AdvancedFilterScreen;
 import com.kqp.ezpas.init.Ezpas;
 import com.kqp.ezpas.init.client.EzpasClient;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
-import net.minecraft.client.MinecraftClient;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
@@ -22,16 +20,16 @@ public class OpenAdvancedFilterScreenS2C {
         buf.writeBlockPos(blockPos);
 
         buf.writeInt(flags.length);
-        for (int i = 0; i < flags.length; i++) {
-            buf.writeBoolean(flags[i]);
+        for (boolean flag : flags) {
+            buf.writeBoolean(flag);
         }
 
-        ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, ID, buf);
+        ServerPlayNetworking.getSender(player).sendPacket(ID, buf);
     }
 
     @Environment(EnvType.CLIENT)
     public static void register() {
-        ClientSidePacketRegistry.INSTANCE.register(ID, (context, buf) -> {
+        ClientPlayNetworking.registerReceiver(ID, (client, handler, buf, resSender) -> {
             BlockPos blockPos = buf.readBlockPos();
             int flagArrayLength = buf.readInt();
             boolean flags[] = new boolean[flagArrayLength];
@@ -40,7 +38,7 @@ public class OpenAdvancedFilterScreenS2C {
                 flags[i] = buf.readBoolean();
             }
 
-            context.getTaskQueue().execute(() -> {
+            client.execute(() -> {
                 EzpasClient.openAdvancedFilterScreen(blockPos, flags);
             });
         });
