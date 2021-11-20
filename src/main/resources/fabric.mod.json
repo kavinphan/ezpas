@@ -2,20 +2,16 @@
   "schemaVersion": 1,
   "id": "ezpas",
   "version": "${version}",
-
   "name": "Ezpas",
   "description": "",
   "authors": [
     "KQP"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": ""
+    "sources": "https://github.com/cakewhip/ezpas"
   },
-
-  "license": "CC0-1.0",
+  "license": "MIT",
   "icon": "assets/ezpas/icon.png",
-
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -28,15 +24,10 @@
   "mixins": [
     "ezpas.mixins.json"
   ],
-
   "depends": {
-    "fabricloader": ">=0.11.6",
+    "fabricloader": ">=0.11",
     "fabric": "*",
-    "minecraft": "1.17.x",
-    "java": ">=11"
-  },
-  "suggests": {
-    "flamingo": "*"
+    "minecraft": "1.17.x"
   },
   "custom": {
     "modupdater": {
