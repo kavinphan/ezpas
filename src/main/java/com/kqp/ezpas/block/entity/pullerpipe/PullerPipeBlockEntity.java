@@ -13,6 +13,10 @@ import com.kqp.ezpas.pipe.filter.Filter;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
@@ -30,9 +34,10 @@ import net.minecraft.world.WorldAccess;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 public abstract class PullerPipeBlockEntity extends BlockEntity {
-    private List<PrioritizedList<InsertionPoint>> prioritizedInsertionPoints;
+    private final List<List<InsertionPoint>> prioritizedInsertionPoints = new ArrayList<>();
 
     private boolean shouldRecalculate = true;
 
@@ -41,16 +46,14 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     public int coolDown;
 
     public final int speed;
-    public final int extractionRate;
+    public final int extractionSize;
     public final int subTickRate;
 
-    public PullerPipeBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, int speed, int extractionRate, int subTickRate) {
+    public PullerPipeBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, int speed, int extractionSize, int subTickRate) {
         super(type, pos, state);
 
-        this.prioritizedInsertionPoints = new ArrayList<>();
-
         this.speed = speed;
-        this.extractionRate = extractionRate;
+        this.extractionSize = extractionSize;
         this.subTickRate = subTickRate;
     }
 
@@ -81,19 +84,36 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
                 blockEntity.shouldRecalculate = false;
             }
 
-            if (!blockEntity.world.isReceivingRedstonePower(pos)) {
-                if (blockEntity.coolDown <= 0) {
-                    for (int i = 0; i < blockEntity.subTickRate; i++) {
-                        blockEntity.doExtraction();
-                    }
-
-                    blockEntity.coolDown = blockEntity.speed;
-                } else {
-                    blockEntity.coolDown = Math.max(0, blockEntity.coolDown - 1);
-                }
-            } else {
-                blockEntity.coolDown = blockEntity.speed;
+            // Do nothing if there are no insertion points.
+            if (blockEntity.prioritizedInsertionPoints.isEmpty()) {
+                return;
             }
+
+            // Mark to recalculate and return if the source storage is missing.
+            Storage<ItemVariant> srcStorage = ItemStorage.SIDED.find(
+                    world,
+                    blockEntity.getExtractionBlockPos(),
+                    blockEntity.getExtractionDirection()
+            );
+            if (srcStorage == null || !srcStorage.supportsExtraction()) {
+                blockEntity.markToRecalculate();
+                return;
+            }
+
+            // Do not extract if powered.
+            // Also reset cool down.
+            if (blockEntity.world.isReceivingRedstonePower(pos)) {
+                blockEntity.coolDown = blockEntity.speed;
+                return;
+            }
+
+            // If on cool down, decrement and return.
+            if (blockEntity.coolDown > 0) {
+                blockEntity.coolDown = Math.max(0, blockEntity.coolDown - 1);
+                return;
+            }
+
+            blockEntity.performExtractions();
         }
     }
 
@@ -114,11 +134,16 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         // Build inventory graph.
         calculateInsertionPoints(newIPs, getInsertionBlockPos(), getInsertionDirection(), pathMap, rootPath);
 
-        // Sort by priority.
-        newIPs.sort(Comparator.comparing(InsertionPoint::getPriority));
-
         // Group insertion points by priority.
         prioritizedInsertionPoints.clear();
+        for (InsertionPoint ip : newIPs) {
+            getListForPriority(ip.priority).add(ip);
+        }
+
+        // Remove gaps in priorities (ie [0, 5, 7] -> [0, 1, 2])
+        deGapPriorities(newIPs);
+
+        // Add insertion points to the prioritized list of lists of insertion points.
         for (InsertionPoint ip : newIPs) {
             getListForPriority(ip.priority).add(ip);
         }
@@ -255,67 +280,79 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     }
 
     /**
-     * This is the main extraction method.
-     * It starts by checking all the previous prioritized lists
-     * to see if any of them have opened up. If none are available,
-     * it goes to the current priority. If it can't successfully
-     * make an extraction, it exits the method and bumps the priority.
+     * Performs all extractions that this puller block should do.
      */
-    public void doExtraction() {
-        if (this.prioritizedInsertionPoints.isEmpty()) {
-            return;
+    public void performExtractions() {
+        // Set current priority to highest (0).
+        currentPriority = 0;
+
+        Storage<ItemVariant> srcStorage = ItemStorage.SIDED.find(
+                world,
+                this.getExtractionBlockPos(),
+                this.getExtractionDirection()
+        );
+
+        // Perform extractions
+        for (int i = 0; i < subTickRate; i++) {
+            validateRRCounter();
+            performExtraction(srcStorage);
         }
 
-        // If current priority is broken, increment to revalidate
-        if (getListForPriority(currentPriority) == null) {
-            incrementCurrentPriority();
+        coolDown = speed;
+    }
+
+    /**
+     * Performs one extraction.
+     */
+    public void performExtraction(Storage<ItemVariant> srcStorage) {
+        List<InsertionPoint> ips = prioritizedInsertionPoints
+                .stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
+        Transaction trx = Transaction.openOuter();
+
+        main:
+        for (StorageView<ItemVariant> iv : srcStorage.iterable(trx)) {
+            ItemVariant resource = iv.getResource();
+
+            if (resource.isBlank()) {
+                continue;
+            }
+
+            // Attempt extraction from source storage.
+            long extracted = iv.extract(resource, extractionSize, trx);
+            if (extracted == 0) {
+                continue;
+            }
+
+            for (InsertionPoint ip : ips) {
+                Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, ip.blockPos, ip.side);
+                List<SingleSlotStorage<ItemVariant>> slots = StreamSupport.stream(
+                        storage.iterable(trx).spliterator(), false
+                ).filter(
+                        sv -> sv instanceof SingleSlotStorage<ItemVariant>
+                ).map(
+                        sv -> (SingleSlotStorage<ItemVariant>) sv
+                ).collect(Collectors.toList());
+
+                // Attempt insertion into target insertion point.
+                long inserted = StorageUtil.insertStacking(slots, resource, extracted, trx);
+                if (extracted == inserted && extracted > 0) {
+                    break main;
+                }
+            }
         }
 
-        // If round robin counter is out of bounds for current priority, revalidate
+        trx.commit();
+    }
+
+    /**
+     * Validates the round robin counter so that it doesn't extract from an invalid index.
+     */
+    private void validateRRCounter() {
         if (rrCounter >= getListForPriority(currentPriority).size()) {
             rrCounter = 0;
-        }
-
-        Inventory from = getInventoryAt(world, this.getExtractionBlockPos());
-
-        // Check that the extracting inventory still exists
-        if (from != null && !from.isEmpty() && !prioritizedInsertionPoints.isEmpty()) {
-            // Before going to current stuff, check previous inventories
-            for (PrioritizedList<InsertionPoint> prioritizedList : prioritizedInsertionPoints) {
-                if (prioritizedList.priority == currentPriority) {
-                    break;
-                }
-
-                for (int i = 0; i < prioritizedList.size(); i++) {
-                    InsertionPoint inventory = prioritizedList.get(i);
-                    boolean extracted = extract(from, getInventoryAt(world, inventory.blockPos), facing.getOpposite(), inventory.side, inventory.filters);
-
-                    // If we're able to extract from a non-current priority inventory,
-                    // Reset our current priority and counter
-                    if (extracted) {
-                        currentPriority = prioritizedList.priority;
-                        rrCounter = i;
-                        incrementRrCounter();
-
-                        return;
-                    }
-                }
-            }
-
-            PrioritizedList<InsertionPoint> insertionPoints = getListForPriority(currentPriority);
-            int attempts = 0;
-            boolean extracted = false;
-
-            while (!extracted && attempts < insertionPoints.size()) {
-                InsertionPoint insertionPoint = insertionPoints.get(rrCounter);
-                extracted = extract(from, getInventoryAt(world, insertionPoint.blockPos), facing.getOpposite(), insertionPoint.side, insertionPoint.filters);
-                incrementRrCounter();
-                attempts++;
-            }
-
-            if (!extracted) {
-                incrementCurrentPriority();
-            }
         }
     }
 
@@ -326,27 +363,14 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         }
     }
 
-    private void incrementCurrentPriority() {
-        int minPriority = currentPriority;
-
-        // Iterate through list to find a list with a higher priority
-        // If we find one, set that as the current priority and exit
-        // Also find the minimum priority during this
-        for (int i = 0; i < prioritizedInsertionPoints.size(); i++) {
-            PrioritizedList<InsertionPoint> prioritizedList = prioritizedInsertionPoints.get(i);
-
-            if (prioritizedList.priority > currentPriority) {
-                currentPriority = prioritizedList.priority;
-                return;
-            }
-
-            if (prioritizedList.priority < minPriority) {
-                minPriority = prioritizedList.priority;
-            }
+    /**
+     * Sets the current priority to the next lowest priority (0 -> 1)
+     */
+    private void gotoNextPriority() {
+        currentPriority++;
+        if (currentPriority >= prioritizedInsertionPoints.size()) {
+            currentPriority = 0;
         }
-
-        // If we aren't able to find a higher priority, set it to the minimum
-        currentPriority = minPriority;
     }
 
     /**
@@ -396,7 +420,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
             ItemStack currentStackInSlot = to.getStack(insertionSlot);
 
             // The amount to extract is the minimum of the extraction rate and the get of the stack to extract
-            int amountToExtract = Math.min(extractionRate, extractionStack.getCount());
+            int amountToExtract = Math.min(extractionSize, extractionStack.getCount());
 
             if (currentStackInSlot == ItemStack.EMPTY || currentStackInSlot.getCount() == 0) {
                 // If current stack is empty, just replace it
@@ -434,18 +458,12 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         return false;
     }
 
-    public PrioritizedList<InsertionPoint> getListForPriority(int priority) {
-        for (PrioritizedList<InsertionPoint> prioritizedList : prioritizedInsertionPoints) {
-            if (prioritizedList.priority == priority) {
-                return prioritizedList;
-            }
+    public List<InsertionPoint> getListForPriority(int priority) {
+        while (priority >= prioritizedInsertionPoints.size()) {
+            prioritizedInsertionPoints.add(new ArrayList<InsertionPoint>());
         }
 
-
-        PrioritizedList<InsertionPoint> ret = new PrioritizedList<InsertionPoint>(priority);
-        prioritizedInsertionPoints.add(ret);
-
-        return ret;
+        return prioritizedInsertionPoints.get(priority);
     }
 
     private BlockPos getExtractionBlockPos() {
@@ -462,10 +480,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
 
     private Direction getInsertionDirection() {
         return this.world.getBlockState(this.pos).get(FacingBlock.FACING).getOpposite();
-    }
-
-    public List<PrioritizedList<InsertionPoint>> getValidInventories() {
-        return prioritizedInsertionPoints;
     }
 
     private static void sanitizeSlot(Inventory inv, int slot) {
@@ -615,6 +629,10 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         this.shouldRecalculate = true;
     }
 
+    public List<List<InsertionPoint>> getValidInventories() {
+        return prioritizedInsertionPoints;
+    }
+
     /**
      * Determines if the query block can propagate items.
      *
@@ -649,15 +667,24 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     }
 
     /**
-     * ArrayList with a priority attached to it.
+     * Ensures that priorities increment by one instead of having jumps.
+     * IE converts a list of priorities [2, 5, 8] to [0, 1, 2]
      *
-     * @param <E>
+     * @param ips List of insertion points.
      */
-    public static class PrioritizedList<E> extends ArrayList<E> {
-        public final int priority;
+    public static void deGapPriorities(List<InsertionPoint> ips) {
+        ips.sort(Comparator.comparing(InsertionPoint::getPriority));
 
-        public PrioritizedList(int priority) {
-            this.priority = priority;
+        int currentPriority = -1;
+        int prevIPPriority = -1;
+
+        for (InsertionPoint ip : ips) {
+            if (ip.priority > prevIPPriority) {
+                prevIPPriority = ip.priority;
+                currentPriority++;
+            }
+
+            ip.priority = currentPriority;
         }
     }
 }

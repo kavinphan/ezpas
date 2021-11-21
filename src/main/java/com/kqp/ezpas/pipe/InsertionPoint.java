@@ -10,8 +10,11 @@ import java.util.Objects;
 public class InsertionPoint {
     public final BlockPos blockPos;
     public final Direction side;
+
     public final List<Filter> filters;
-    public final int priority;
+
+    public int priority;
+
     public final int distance;
 
     public InsertionPoint(BlockPos blockPos, Direction side, List<Filter> filters, int priority, int distance) {
