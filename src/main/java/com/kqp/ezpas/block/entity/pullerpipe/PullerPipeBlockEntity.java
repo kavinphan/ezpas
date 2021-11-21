@@ -394,7 +394,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
             }
 
             // Attempt insertion into target insertion point using how many resources there are.
-            long inserted = StorageUtil.insertStacking(slots, resource, iv.getAmount(), trx);
+            long inserted = StorageUtil.insertStacking(slots, resource, Math.min(iv.getAmount(), extractionSize), trx);
             if (inserted > 0) {
                 // Attempt extraction from source storage.
                 // Continue to next resource if unable to.
