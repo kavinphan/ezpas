@@ -49,6 +49,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     public final int extractionSize;
     public final int subTickRate;
 
+    private Storage<ItemVariant> cachedExtractionStorage = null;
+
     public PullerPipeBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, int speed, int extractionSize,
                                  int subTickRate) {
         super(type, pos, state);
@@ -82,6 +84,18 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     }
 
     private void serverTick() {
+        // Sync insertion point storages.
+        prioritizedInsertionPoints.stream().flatMap(List::stream).forEach(InsertionPoint::syncStorage);
+
+        // Check for any invalid insertion points.
+        // If any appear, mark for recalculation.
+        boolean anyIPsInvalid = prioritizedInsertionPoints.stream()
+            .flatMap(List::stream)
+            .anyMatch(InsertionPoint::invalid);
+        if (anyIPsInvalid) {
+            shouldRecalculate = true;
+        }
+
         // Re-calculate insertion points if marked
         if (shouldRecalculate) {
             calculateInsertionPoints();
@@ -94,11 +108,11 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         }
 
         // Mark to recalculate and return if the source storage is missing.
-        Storage<ItemVariant> srcStorage = ItemStorage.SIDED.find(world,
+         cachedExtractionStorage = ItemStorage.SIDED.find(world,
             getExtractionBlockPos(),
             getExtractionDirection()
         );
-        if (srcStorage == null || !srcStorage.supportsExtraction()) {
+        if (cachedExtractionStorage == null || !cachedExtractionStorage.supportsExtraction()) {
             markToRecalculate();
             return;
         }
@@ -225,7 +239,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         // Second case is if the current block is insertable.
         // We also check to see if the previous block was a rigid pipe,
         // which does not propagate items to insertion points.
-        if (isInsertable(world, blockPos, inDir.getOpposite()) && !(prevBlock instanceof RigidPipeBlock)) {
+        Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, blockPos, inDir.getOpposite());
+        if (storage != null && storage.supportsInsertion() && !(prevBlock instanceof RigidPipeBlock)) {
             // Create new path for the current block.
             Path currPath = prevPath.branch();
 
@@ -250,11 +265,13 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
                 }
             }
 
-            InsertionPoint newIP = new InsertionPoint(blockPos,
+            InsertionPoint newIP = new InsertionPoint(world,
+                blockPos,
                 inDir.getOpposite(),
                 currPath.getFilters(),
                 currPath.priority,
-                currPath.getVisitedCount()
+                currPath.getVisitedCount(),
+                storage
             );
 
             // If an insertion points exists with the same parameters except
@@ -282,15 +299,10 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         // Set current priority to highest (0).
         currentPriority = 0;
 
-        Storage<ItemVariant> srcStorage = ItemStorage.SIDED.find(world,
-            this.getExtractionBlockPos(),
-            this.getExtractionDirection()
-        );
-
         // Perform extractions
         for (int i = 0; i < subTickRate; i++) {
             validateRRCounter();
-            performExtraction(srcStorage);
+            performExtraction();
         }
 
         coolDown = speed;
@@ -299,7 +311,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     /**
      * Performs one extraction.
      */
-    public void performExtraction(Storage<ItemVariant> srcStorage) {
+    public void performExtraction() {
         List<InsertionPoint> ips = prioritizedInsertionPoints.stream()
             .flatMap(List::stream)
             .collect(Collectors.toList());
@@ -307,7 +319,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         Transaction trx = Transaction.openOuter();
 
         main:
-        for (StorageView<ItemVariant> iv : srcStorage.iterable(trx)) {
+        for (StorageView<ItemVariant> iv : cachedExtractionStorage.iterable(trx)) {
             ItemVariant resource = iv.getResource();
 
             if (resource.isBlank()) {
@@ -321,10 +333,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
             }
 
             for (InsertionPoint ip : ips) {
-                Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, ip.blockPos, ip.side);
-                List<SingleSlotStorage<ItemVariant>> slots = StreamSupport.stream(storage.iterable(trx).spliterator(),
-                        false
-                    )
+                List<SingleSlotStorage<ItemVariant>> slots = StreamSupport.stream(ip.storage.iterable(trx)
+                        .spliterator(), false)
                     .filter(sv -> sv instanceof SingleSlotStorage<ItemVariant>)
                     .map(sv -> (SingleSlotStorage<ItemVariant>) sv)
                     .collect(Collectors.toList());
@@ -652,19 +662,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         }
 
         return canPropagate;
-    }
-
-    /**
-     * Determines if the given block position is able to receive items.
-     *
-     * @param world         The world.
-     * @param blockPos      The block position to query.
-     * @param receivingSide The receiving side of the block.
-     * @return True if the block position is able to receive items.
-     */
-    public static boolean isInsertable(World world, BlockPos blockPos, Direction receivingSide) {
-        Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, blockPos, receivingSide);
-        return storage != null && storage.supportsInsertion();
     }
 
     /**
