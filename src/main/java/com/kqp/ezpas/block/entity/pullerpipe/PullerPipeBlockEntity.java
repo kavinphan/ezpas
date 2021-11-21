@@ -77,44 +77,46 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         return tag;
     }
 
-    public static void tick(World world, BlockPos pos, BlockState state, PullerPipeBlockEntity blockEntity) {
-        if (!world.isClient()) {
-            // Re-calculate insertion points if marked
-            if (blockEntity.shouldRecalculate) {
-                blockEntity.calculateInsertionPoints();
-                blockEntity.shouldRecalculate = false;
-            }
+    public static void serverTick(World world, BlockPos pos, BlockState state, PullerPipeBlockEntity blockEntity) {
+        blockEntity.serverTick();
+    }
 
-            // Do nothing if there are no insertion points.
-            if (blockEntity.prioritizedInsertionPoints.isEmpty()) {
-                return;
-            }
-
-            // Mark to recalculate and return if the source storage is missing.
-            Storage<ItemVariant> srcStorage = ItemStorage.SIDED.find(world,
-                blockEntity.getExtractionBlockPos(),
-                blockEntity.getExtractionDirection()
-            );
-            if (srcStorage == null || !srcStorage.supportsExtraction()) {
-                blockEntity.markToRecalculate();
-                return;
-            }
-
-            // Do not extract if powered.
-            // Also reset cool down.
-            if (blockEntity.world.isReceivingRedstonePower(pos)) {
-                blockEntity.coolDown = blockEntity.speed;
-                return;
-            }
-
-            // If on cool down, decrement and return.
-            if (blockEntity.coolDown > 0) {
-                blockEntity.coolDown = Math.max(0, blockEntity.coolDown - 1);
-                return;
-            }
-
-            blockEntity.performExtractions();
+    private void serverTick() {
+        // Re-calculate insertion points if marked
+        if (shouldRecalculate) {
+            calculateInsertionPoints();
+            shouldRecalculate = false;
         }
+
+        // Do nothing if there are no insertion points.
+        if (prioritizedInsertionPoints.isEmpty()) {
+            return;
+        }
+
+        // Mark to recalculate and return if the source storage is missing.
+        Storage<ItemVariant> srcStorage = ItemStorage.SIDED.find(world,
+            getExtractionBlockPos(),
+            getExtractionDirection()
+        );
+        if (srcStorage == null || !srcStorage.supportsExtraction()) {
+            markToRecalculate();
+            return;
+        }
+
+        // Do not extract if powered.
+        // Also reset cool down.
+        if (world.isReceivingRedstonePower(pos)) {
+            coolDown = speed;
+            return;
+        }
+
+        // If on cool down, decrement and return.
+        if (coolDown > 0) {
+            coolDown = Math.max(0, coolDown - 1);
+            return;
+        }
+
+        performExtractions();
     }
 
     /**

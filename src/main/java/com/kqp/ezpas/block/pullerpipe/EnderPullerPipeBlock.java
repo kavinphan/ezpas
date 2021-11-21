@@ -23,6 +23,6 @@ public class EnderPullerPipeBlock extends PullerPipeBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state,
                                                                   BlockEntityType<T> type) {
-        return world.isClient ? null : checkType(type, Ezpas.ENDER_PP_BLOCK_ENTITY, PullerPipeBlockEntity::tick);
+        return world.isClient ? null : checkType(type, Ezpas.ENDER_PP_BLOCK_ENTITY, PullerPipeBlockEntity::serverTick);
     }
 }
