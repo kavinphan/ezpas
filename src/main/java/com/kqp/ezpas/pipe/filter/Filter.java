@@ -5,7 +5,6 @@ import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tag.ItemTags;
@@ -206,9 +205,8 @@ public class Filter {
             return false;
         }
         Filter filter = (Filter) o;
-        return type == filter.type && Arrays.equals(flags, filter.flags) && Objects.equals(itemStacks.stream()
-                .map(ComparableItemStack::new)
-                .collect(Collectors.toSet()),
+        return type == filter.type && Arrays.equals(flags, filter.flags) && Objects.equals(
+            itemStacks.stream().map(ComparableItemStack::new).collect(Collectors.toSet()),
             filter.itemStacks.stream().map(ComparableItemStack::new).collect(Collectors.toSet())
         );
     }

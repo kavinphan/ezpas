@@ -61,12 +61,10 @@ public class Ezpas implements ModInitializer {
     public static final Block DENSE_PIPE = register("dense_pipe", new PipeBlock());
     public static final Block RIGID_PIPE = register("rigid_pipe", new RigidPipeBlock());
 
-    public static final Block FILTERED_PIPE_WHITELIST = register(
-        "filtered_pipe_whitelist",
+    public static final Block FILTERED_PIPE_WHITELIST = register("filtered_pipe_whitelist",
         new FilteredPipeBlock(FilteredPipeBlock.Type.WHITELIST)
     );
-    public static final Block FILTERED_PIPE_BLACKLIST = register(
-        "filtered_pipe_blacklist",
+    public static final Block FILTERED_PIPE_BLACKLIST = register("filtered_pipe_blacklist",
         new FilteredPipeBlock(FilteredPipeBlock.Type.BLACKLIST)
     );
 
@@ -113,8 +111,7 @@ public class Ezpas implements ModInitializer {
     );
 
     // SCREEN HANDLERS
-    public static final ScreenHandlerType<FilteredPipeScreenHandler> FILTERED_PIPE_SCREEN_HANDLER_TYPE = ScreenHandlerRegistry.registerExtended(
-        id("filtered_pipe"),
+    public static final ScreenHandlerType<FilteredPipeScreenHandler> FILTERED_PIPE_SCREEN_HANDLER_TYPE = ScreenHandlerRegistry.registerExtended(id("filtered_pipe"),
         (syncId, inv, buf) -> {
             final World world = inv.player.world;
             final BlockPos blockPos = buf.readBlockPos();

@@ -20,7 +20,6 @@ import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class PipeProbeItem extends Item {
     public PipeProbeItem() {

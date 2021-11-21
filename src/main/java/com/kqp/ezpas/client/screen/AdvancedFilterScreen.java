@@ -137,10 +137,10 @@ public class AdvancedFilterScreen extends Screen {
         return true;
     }
 
-    private static final ItemStack[] FLAG_ICONS = {new ItemStack(Items.WATER_BUCKET), new ItemStack(Items.LEVER),
+    private static final ItemStack[] FLAG_ICONS = { new ItemStack(Items.WATER_BUCKET), new ItemStack(Items.LEVER),
         new ItemStack(Items.WHITE_WOOL), new ItemStack(Items.PAPER), new ItemStack(Items.NAME_TAG),
         new ItemStack(Items.IRON_SWORD), new ItemStack(Items.GLASS_BOTTLE), new ItemStack(Items.FURNACE),
         new ItemStack(Items.HONEY_BOTTLE), new ItemStack(Items.REDSTONE_TORCH), ItemStack.EMPTY, ItemStack.EMPTY,
         ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY,
-        ItemStack.EMPTY, ItemStack.EMPTY,};
+        ItemStack.EMPTY, ItemStack.EMPTY, };
 }

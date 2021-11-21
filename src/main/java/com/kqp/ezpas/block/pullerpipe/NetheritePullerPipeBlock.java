@@ -23,6 +23,10 @@ public class NetheritePullerPipeBlock extends PullerPipeBlock {
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state,
                                                                   BlockEntityType<T> type) {
-        return world.isClient ? null : checkType(type, Ezpas.NETHERITE_PP_BLOCK_ENTITY, PullerPipeBlockEntity::serverTick);
+        return world.isClient ? null : checkType(
+            type,
+            Ezpas.NETHERITE_PP_BLOCK_ENTITY,
+            PullerPipeBlockEntity::serverTick
+        );
     }
 }
