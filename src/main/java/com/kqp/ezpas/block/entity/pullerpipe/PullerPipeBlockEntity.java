@@ -49,7 +49,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     public final int extractionSize;
     public final int subTickRate;
 
-    public PullerPipeBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, int speed, int extractionSize, int subTickRate) {
+    public PullerPipeBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, int speed, int extractionSize,
+                                 int subTickRate) {
         super(type, pos, state);
 
         this.speed = speed;
@@ -90,10 +91,9 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
             }
 
             // Mark to recalculate and return if the source storage is missing.
-            Storage<ItemVariant> srcStorage = ItemStorage.SIDED.find(
-                    world,
-                    blockEntity.getExtractionBlockPos(),
-                    blockEntity.getExtractionDirection()
+            Storage<ItemVariant> srcStorage = ItemStorage.SIDED.find(world,
+                blockEntity.getExtractionBlockPos(),
+                blockEntity.getExtractionDirection()
             );
             if (srcStorage == null || !srcStorage.supportsExtraction()) {
                 blockEntity.markToRecalculate();
@@ -158,13 +158,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
      * @param pathMap  Map of block positions to their paths.
      * @param prevPath Current path.
      */
-    private void calculateInsertionPoints(
-            List<InsertionPoint> ipList,
-            BlockPos blockPos,
-            Direction inDir,
-            Map<BlockPos, List<Path>> pathMap,
-            Path prevPath
-    ) {
+    private void calculateInsertionPoints(List<InsertionPoint> ipList, BlockPos blockPos, Direction inDir,
+                                          Map<BlockPos, List<Path>> pathMap, Path prevPath) {
         // Ignore visited blocks.
         if (prevPath.hasVisited(blockPos)) {
             return;
@@ -210,8 +205,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
             // filters or 2) a higher priority (0 = highest, infinity = lowest)
             List<Path> pathList = pathMap.computeIfAbsent(blockPos, x -> new ArrayList<>());
             for (Path existingPath : pathList) {
-                if (existingPath.getFilters().equals(currPath.getFilters())
-                        || existingPath.priority <= currPath.priority) {
+                if (existingPath.getFilters()
+                    .equals(currPath.getFilters()) || existingPath.priority <= currPath.priority) {
                     return;
                 }
             }
@@ -253,12 +248,11 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
                 }
             }
 
-            InsertionPoint newIP = new InsertionPoint(
-                    blockPos,
-                    inDir.getOpposite(),
-                    currPath.getFilters(),
-                    currPath.priority,
-                    currPath.getVisitedCount()
+            InsertionPoint newIP = new InsertionPoint(blockPos,
+                inDir.getOpposite(),
+                currPath.getFilters(),
+                currPath.priority,
+                currPath.getVisitedCount()
             );
 
             // If an insertion points exists with the same parameters except
@@ -286,10 +280,9 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         // Set current priority to highest (0).
         currentPriority = 0;
 
-        Storage<ItemVariant> srcStorage = ItemStorage.SIDED.find(
-                world,
-                this.getExtractionBlockPos(),
-                this.getExtractionDirection()
+        Storage<ItemVariant> srcStorage = ItemStorage.SIDED.find(world,
+            this.getExtractionBlockPos(),
+            this.getExtractionDirection()
         );
 
         // Perform extractions
@@ -305,10 +298,9 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
      * Performs one extraction.
      */
     public void performExtraction(Storage<ItemVariant> srcStorage) {
-        List<InsertionPoint> ips = prioritizedInsertionPoints
-                .stream()
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        List<InsertionPoint> ips = prioritizedInsertionPoints.stream()
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
 
         Transaction trx = Transaction.openOuter();
 
@@ -328,13 +320,12 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
 
             for (InsertionPoint ip : ips) {
                 Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, ip.blockPos, ip.side);
-                List<SingleSlotStorage<ItemVariant>> slots = StreamSupport.stream(
-                        storage.iterable(trx).spliterator(), false
-                ).filter(
-                        sv -> sv instanceof SingleSlotStorage<ItemVariant>
-                ).map(
-                        sv -> (SingleSlotStorage<ItemVariant>) sv
-                ).collect(Collectors.toList());
+                List<SingleSlotStorage<ItemVariant>> slots = StreamSupport.stream(storage.iterable(trx).spliterator(),
+                        false
+                    )
+                    .filter(sv -> sv instanceof SingleSlotStorage<ItemVariant>)
+                    .map(sv -> (SingleSlotStorage<ItemVariant>) sv)
+                    .collect(Collectors.toList());
 
                 // Attempt insertion into target insertion point.
                 long inserted = StorageUtil.insertStacking(slots, resource, extracted, trx);
@@ -383,7 +374,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
      * @param filters
      * @return
      */
-    public boolean extract(Inventory from, Inventory to, Direction extractionSide, Direction insertSide, List<Filter> filters) {
+    public boolean extract(Inventory from, Inventory to, Direction extractionSide, Direction insertSide,
+                           List<Filter> filters) {
         // First find a stack to extract
         ItemStack extractionStack = null;
         int extractionSlot = -1;
@@ -396,9 +388,11 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
             int queryExtractionSlot = availableExtractionSlots[i];
             ItemStack queryStack = from.getStack(queryExtractionSlot);
 
-            if (queryStack != ItemStack.EMPTY
-                    && stackPasses(queryStack, filters, to)
-                    && canExtract(from, queryExtractionSlot, queryStack, extractionSide)) {
+            if (queryStack != ItemStack.EMPTY && stackPasses(queryStack, filters, to) && canExtract(from,
+                queryExtractionSlot,
+                queryStack,
+                extractionSide
+            )) {
                 // Only continue if stack is not empty
                 // Query the receiving inventory to see what slot it can be inserted into
                 int queryInsertionSlot = getInsertionSlotForStack(to, queryStack, insertSide);
@@ -547,15 +541,17 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
                         ItemStack queryStack = inv.getStack(slot);
 
                         // canInsert doesn't check for item parity
-                        if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0
-                                || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areNbtEqual(queryStack, stack))) {
+                        if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0 || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack,
+                            stack
+                        ) && ItemStack.areNbtEqual(queryStack, stack))) {
                             return slot;
                         }
                     }
                 } else {
                     ItemStack queryStack = inv.getStack(slot);
-                    if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0
-                            || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack, stack) && ItemStack.areNbtEqual(queryStack, stack))) {
+                    if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0 || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack,
+                        stack
+                    ) && ItemStack.areNbtEqual(queryStack, stack))) {
                         return slot;
                     }
                 }
@@ -566,7 +562,9 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     }
 
     private static int[] getAvailableSlots(Inventory inventory, Direction side) {
-        return inventory instanceof SidedInventory ? ((SidedInventory) inventory).getAvailableSlots(side) : IntStream.range(0, inventory.size()).toArray();
+        return inventory instanceof SidedInventory ? ((SidedInventory) inventory).getAvailableSlots(side) : IntStream.range(0,
+            inventory.size()
+        ).toArray();
     }
 
     /**
@@ -594,7 +592,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
      * @param blockPos BlockPos to search
      * @param searched Set of block positions already searched
      */
-    public static void updatePullerPipes(WorldAccess world, BlockPos blockPos, Direction direction, Set<BlockPos> searched) {
+    public static void updatePullerPipes(WorldAccess world, BlockPos blockPos, Direction direction,
+                                         Set<BlockPos> searched) {
         if (!searched.contains(blockPos)) {
             searched.add(blockPos);
 

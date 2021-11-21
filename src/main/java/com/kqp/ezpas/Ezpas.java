@@ -61,8 +61,14 @@ public class Ezpas implements ModInitializer {
     public static final Block DENSE_PIPE = register("dense_pipe", new PipeBlock());
     public static final Block RIGID_PIPE = register("rigid_pipe", new RigidPipeBlock());
 
-    public static final Block FILTERED_PIPE_WHITELIST = register("filtered_pipe_whitelist", new FilteredPipeBlock(FilteredPipeBlock.Type.WHITELIST));
-    public static final Block FILTERED_PIPE_BLACKLIST = register("filtered_pipe_blacklist", new FilteredPipeBlock(FilteredPipeBlock.Type.BLACKLIST));
+    public static final Block FILTERED_PIPE_WHITELIST = register(
+        "filtered_pipe_whitelist",
+        new FilteredPipeBlock(FilteredPipeBlock.Type.WHITELIST)
+    );
+    public static final Block FILTERED_PIPE_BLACKLIST = register(
+        "filtered_pipe_blacklist",
+        new FilteredPipeBlock(FilteredPipeBlock.Type.BLACKLIST)
+    );
 
     public static final List<Block> COLORED_PIPES = Arrays.stream(DyeColor.values()).map((color) -> {
         return register(color.getName() + "_stained_pipe", new ColoredPipeBlock());
@@ -76,34 +82,50 @@ public class Ezpas implements ModInitializer {
     }
 
     // BLOCK ENTITIES
-    public static BlockEntityType<IronPullerPipeBlockEntity> IRON_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("iron_puller_pipe"),
-            FabricBlockEntityTypeBuilder.create(IronPullerPipeBlockEntity::new, IRON_PP).build(null));
+    public static BlockEntityType<IronPullerPipeBlockEntity> IRON_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        id("iron_puller_pipe"),
+        FabricBlockEntityTypeBuilder.create(IronPullerPipeBlockEntity::new, IRON_PP).build(null)
+    );
 
-    public static BlockEntityType<GoldPullerPipeBlockEntity> GOLD_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("gold_puller_pipe"),
-            FabricBlockEntityTypeBuilder.create(GoldPullerPipeBlockEntity::new, GOLD_PP).build(null));
+    public static BlockEntityType<GoldPullerPipeBlockEntity> GOLD_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        id("gold_puller_pipe"),
+        FabricBlockEntityTypeBuilder.create(GoldPullerPipeBlockEntity::new, GOLD_PP).build(null)
+    );
 
-    public static BlockEntityType<DiamondPullerPipeBlockEntity> DIAMOND_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("diamond_puller_pipe"),
-            FabricBlockEntityTypeBuilder.create(DiamondPullerPipeBlockEntity::new, DIAMOND_PP).build(null));
+    public static BlockEntityType<DiamondPullerPipeBlockEntity> DIAMOND_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        id("diamond_puller_pipe"),
+        FabricBlockEntityTypeBuilder.create(DiamondPullerPipeBlockEntity::new, DIAMOND_PP).build(null)
+    );
 
-    public static BlockEntityType<NetheritePullerPipeBlockEntity> NETHERITE_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("netherite_puller_pipe"),
-            FabricBlockEntityTypeBuilder.create(NetheritePullerPipeBlockEntity::new, NETHERITE_PP).build(null));
+    public static BlockEntityType<NetheritePullerPipeBlockEntity> NETHERITE_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        id("netherite_puller_pipe"),
+        FabricBlockEntityTypeBuilder.create(NetheritePullerPipeBlockEntity::new, NETHERITE_PP).build(null)
+    );
 
-    public static BlockEntityType<EnderPullerPipeBlockEntity> ENDER_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("ender_puller_pipe"),
-            FabricBlockEntityTypeBuilder.create(EnderPullerPipeBlockEntity::new, ENDER_PP).build(null));
+    public static BlockEntityType<EnderPullerPipeBlockEntity> ENDER_PP_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        id("ender_puller_pipe"),
+        FabricBlockEntityTypeBuilder.create(EnderPullerPipeBlockEntity::new, ENDER_PP).build(null)
+    );
 
-    public static BlockEntityType<FilteredPipeBlockEntity> FILTERED_PIPE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE, id("filtered_pipe"),
-            FabricBlockEntityTypeBuilder.create(FilteredPipeBlockEntity::new, ENDER_PP).build(null));
+    public static BlockEntityType<FilteredPipeBlockEntity> FILTERED_PIPE_BLOCK_ENTITY = Registry.register(Registry.BLOCK_ENTITY_TYPE,
+        id("filtered_pipe"),
+        FabricBlockEntityTypeBuilder.create(FilteredPipeBlockEntity::new, ENDER_PP).build(null)
+    );
 
     // SCREEN HANDLERS
-    public static final ScreenHandlerType<FilteredPipeScreenHandler> FILTERED_PIPE_SCREEN_HANDLER_TYPE =
-            ScreenHandlerRegistry.registerExtended(id("filtered_pipe"), (syncId, inv, buf) -> {
-                final World world = inv.player.world;
-                final BlockPos blockPos = buf.readBlockPos();
+    public static final ScreenHandlerType<FilteredPipeScreenHandler> FILTERED_PIPE_SCREEN_HANDLER_TYPE = ScreenHandlerRegistry.registerExtended(
+        id("filtered_pipe"),
+        (syncId, inv, buf) -> {
+            final World world = inv.player.world;
+            final BlockPos blockPos = buf.readBlockPos();
 
-                FilteredPipeScreenHandler screenHandler = (FilteredPipeScreenHandler) world.getBlockState(blockPos).createScreenHandlerFactory(world, blockPos).createMenu(syncId, inv, inv.player);
+            FilteredPipeScreenHandler screenHandler = (FilteredPipeScreenHandler) world.getBlockState(blockPos)
+                .createScreenHandlerFactory(world, blockPos)
+                .createMenu(syncId, inv, inv.player);
 
-                return screenHandler;
-            });
+            return screenHandler;
+        }
+    );
 
     public static Identifier id(String path) {
         return new Identifier(ID, path);

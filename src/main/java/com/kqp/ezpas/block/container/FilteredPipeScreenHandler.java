@@ -1,7 +1,7 @@
 package com.kqp.ezpas.block.container;
 
-import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.Ezpas;
+import com.kqp.ezpas.block.FilteredPipeBlock;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -14,7 +14,8 @@ public class FilteredPipeScreenHandler extends ScreenHandler {
     public Inventory inventory;
     public FilteredPipeBlock.Type type;
 
-    public FilteredPipeScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, FilteredPipeBlock.Type type) {
+    public FilteredPipeScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory,
+                                     FilteredPipeBlock.Type type) {
         super(Ezpas.FILTERED_PIPE_SCREEN_HANDLER_TYPE, syncId);
 
         this.playerInventory = playerInventory;

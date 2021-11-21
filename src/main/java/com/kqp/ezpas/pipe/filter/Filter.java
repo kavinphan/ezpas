@@ -38,11 +38,11 @@ public class Filter {
 
         if (flags[FilteredPipeBlockEntity.MATCH_MOD_FLAG]) {
             Set<String> validNamespaces = itemStacks.stream()
-                    .filter(itemStack -> !itemStack.isEmpty())
-                    .map(ItemStack::getItem)
-                    .map(Registry.ITEM::getId)
-                    .map(Identifier::getNamespace)
-                    .collect(Collectors.toSet());
+                .filter(itemStack -> !itemStack.isEmpty())
+                .map(ItemStack::getItem)
+                .map(Registry.ITEM::getId)
+                .map(Identifier::getNamespace)
+                .collect(Collectors.toSet());
 
             boolean passes = validNamespaces.contains(Registry.ITEM.getId(queryStack.getItem()).getNamespace());
 
@@ -53,11 +53,11 @@ public class Filter {
         if (flags[FilteredPipeBlockEntity.MATCH_ITEM_TAG_FLAG]) {
             // Gather tag IDs of the filter stacks
             Set<Identifier> filterTagIds = itemStacks.stream()
-                    .filter(itemStack -> !itemStack.isEmpty())
-                    .map(ItemStack::getItem)
-                    .map(Filter::getTagIdsFor)
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toSet());
+                .filter(itemStack -> !itemStack.isEmpty())
+                .map(ItemStack::getItem)
+                .map(Filter::getTagIdsFor)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
 
             // Gather tag IDs of query stack
             Set<Identifier> queryTagIds = new HashSet<>(getTagIdsFor(queryStack.getItem()));
@@ -194,24 +194,33 @@ public class Filter {
     }
 
     private List<ItemStack> getSameItemStacks(Item item) {
-        return itemStacks.stream().filter(stack -> !stack.isEmpty() && stack.getItem() == item).collect(Collectors.toList());
+        return itemStacks.stream()
+            .filter(stack -> !stack.isEmpty() && stack.getItem() == item)
+            .collect(Collectors.toList());
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         Filter filter = (Filter) o;
-        return type == filter.type &&
-                Arrays.equals(flags, filter.flags) &&
-                Objects.equals(
-                        itemStacks.stream().map(ComparableItemStack::new).collect(Collectors.toSet()),
-                        filter.itemStacks.stream().map(ComparableItemStack::new).collect(Collectors.toSet())
-                );
+        return type == filter.type && Arrays.equals(flags, filter.flags) && Objects.equals(itemStacks.stream()
+                .map(ComparableItemStack::new)
+                .collect(Collectors.toSet()),
+            filter.itemStacks.stream().map(ComparableItemStack::new).collect(Collectors.toSet())
+        );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(type, Arrays.hashCode(flags), itemStacks.stream().map(ComparableItemStack::new).collect(Collectors.toSet()));
+        return Objects.hash(
+            type,
+            Arrays.hashCode(flags),
+            itemStacks.stream().map(ComparableItemStack::new).collect(Collectors.toSet())
+        );
     }
 }

@@ -1,7 +1,7 @@
 package com.kqp.ezpas.client.screen;
 
-import com.kqp.ezpas.block.container.FilteredPipeScreenHandler;
 import com.kqp.ezpas.Ezpas;
+import com.kqp.ezpas.block.container.FilteredPipeScreenHandler;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.render.GameRenderer;
@@ -14,7 +14,11 @@ public class FilteredPipeScreen extends HandledScreen<FilteredPipeScreenHandler>
     private static final Identifier TEXTURE = Ezpas.id("textures/gui/container/filtered_pipe.png");
 
     public FilteredPipeScreen(FilteredPipeScreenHandler container, PlayerInventory playerInventory) {
-        super(container, playerInventory, new TranslatableText("container.filtered_pipe_" + container.type.name().toLowerCase()));
+        super(
+            container,
+            playerInventory,
+            new TranslatableText("container.filtered_pipe_" + container.type.name().toLowerCase())
+        );
 
         this.backgroundWidth = 176;
         this.backgroundHeight = 168;
@@ -32,7 +36,13 @@ public class FilteredPipeScreen extends HandledScreen<FilteredPipeScreenHandler>
     @Override
     protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
         this.textRenderer.draw(matrices, this.title, 8.0F, 6.0F, 4210752);
-        this.textRenderer.draw(matrices, this.playerInventoryTitle, 8.0F, (float) (this.backgroundHeight - 96 + 2), 4210752);
+        this.textRenderer.draw(
+            matrices,
+            this.playerInventoryTitle,
+            8.0F,
+            (float) (this.backgroundHeight - 96 + 2),
+            4210752
+        );
     }
 
     @Override

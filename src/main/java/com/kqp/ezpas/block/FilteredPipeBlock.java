@@ -1,7 +1,7 @@
 package com.kqp.ezpas.block;
 
-import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.Ezpas;
+import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -59,7 +59,8 @@ public class FilteredPipeBlock extends PipeBlock implements BlockEntityProvider 
     }
 
     @Override
-    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand,
+                              BlockHitResult hit) {
         if (!world.isClient) {
             BlockEntity be = world.getBlockEntity(pos);
 
@@ -83,7 +84,8 @@ public class FilteredPipeBlock extends PipeBlock implements BlockEntityProvider 
 
     @Nullable
     @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state,
+                                                                  BlockEntityType<T> type) {
         return BlockEntityProvider.super.getTicker(world, state, type);
     }
 

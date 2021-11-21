@@ -34,7 +34,10 @@ public class EzpasClient implements ClientModInitializer {
     }
 
     private static void registerScreens() {
-        ScreenRegistry.<FilteredPipeScreenHandler, FilteredPipeScreen>register(Ezpas.FILTERED_PIPE_SCREEN_HANDLER_TYPE, (screenHandler, inv, text) -> new FilteredPipeScreen(screenHandler, inv));
+        ScreenRegistry.<FilteredPipeScreenHandler, FilteredPipeScreen>register(
+            Ezpas.FILTERED_PIPE_SCREEN_HANDLER_TYPE,
+            (screenHandler, inv, text) -> new FilteredPipeScreen(screenHandler, inv)
+        );
     }
 
     private static void initNetworking() {

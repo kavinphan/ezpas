@@ -46,14 +46,14 @@ public class PipeBlock extends Block {
     public PipeBlock() {
         super(FabricBlockSettings.of(Material.GLASS).strength(0.3F, 0.3F).sounds(BlockSoundGroup.GLASS).nonOpaque());
 
-        this.setDefaultState(this.getStateManager().getDefaultState()
-                .with(NORTH, false)
-                .with(EAST, false)
-                .with(SOUTH, false)
-                .with(WEST, false)
-                .with(UP, false)
-                .with(DOWN, false)
-        );
+        this.setDefaultState(this.getStateManager()
+            .getDefaultState()
+            .with(NORTH, false)
+            .with(EAST, false)
+            .with(SOUTH, false)
+            .with(WEST, false)
+            .with(UP, false)
+            .with(DOWN, false));
 
         this.shapeUtil = new ShapeUtil(this);
     }
@@ -70,12 +70,18 @@ public class PipeBlock extends Block {
         Boolean up = isConnectable(world, pos.up(), Direction.DOWN);
         Boolean down = isConnectable(world, pos.down(), Direction.UP);
 
-        return this.getDefaultState().with(NORTH, north).with(EAST, east)
-                .with(SOUTH, south).with(WEST, west).with(UP, up).with(DOWN, down);
+        return this.getDefaultState()
+            .with(NORTH, north)
+            .with(EAST, east)
+            .with(SOUTH, south)
+            .with(WEST, west)
+            .with(UP, up)
+            .with(DOWN, down);
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, WorldAccess world, BlockPos pos, BlockPos posFrom) {
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState,
+                                                WorldAccess world, BlockPos pos, BlockPos posFrom) {
         PullerPipeBlockEntity.updatePullerPipes(world, pos, direction, new HashSet<>());
 
         Boolean value = isConnectable(world, posFrom, direction.getOpposite());
@@ -145,14 +151,22 @@ public class PipeBlock extends Block {
         }
 
         private HashMap<BlockState, VoxelShape> createStateShapeMap() {
-            return Util.make(new HashMap<>(), map -> pipeBlock.getStateManager().getStates()
-                    .forEach(state -> map.put(state, getStateShape(state)))
+            return Util.make(
+                new HashMap<>(),
+                map -> pipeBlock.getStateManager().getStates().forEach(state -> map.put(state, getStateShape(state)))
             );
         }
 
         private VoxelShape getStateShape(BlockState state) {
             final double size = 4;
-            final VoxelShape baseShape = Block.createCuboidShape(size, size, size, 16.0D - size, 16.0D - size, 16.0D - size);
+            final VoxelShape baseShape = Block.createCuboidShape(
+                size,
+                size,
+                size,
+                16.0D - size,
+                16.0D - size,
+                16.0D - size
+            );
 
             final List<VoxelShape> connections = new ArrayList<>();
             for (Direction dir : Direction.values()) {
@@ -165,7 +179,7 @@ public class PipeBlock extends Block {
                     connections.add(shape);
                 }
             }
-            return VoxelShapes.union(baseShape, connections.toArray(new VoxelShape[] {}));
+            return VoxelShapes.union(baseShape, connections.toArray(new VoxelShape[]{}));
         }
 
         public VoxelShape getShape(BlockState state) {

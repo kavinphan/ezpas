@@ -14,18 +14,18 @@ public class ComparableItemStack {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ComparableItemStack that = (ComparableItemStack) o;
         return ItemStack.areEqual(itemStack, that.itemStack);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(
-                Registry.ITEM.getId(itemStack.getItem()),
-                itemStack.getCount(),
-                itemStack.getOrCreateNbt()
-        );
+        return Objects.hash(Registry.ITEM.getId(itemStack.getItem()), itemStack.getCount(), itemStack.getOrCreateNbt());
     }
 }

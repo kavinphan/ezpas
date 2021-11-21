@@ -37,9 +37,10 @@ public class PipeProbeItem extends Item {
 
             if (be instanceof PullerPipeBlockEntity) {
                 PullerPipeBlockEntity ppBe = ((PullerPipeBlockEntity) be);
-                List<InsertionPoint> invList = ppBe.getValidInventories().stream()
-                        .flatMap(List::stream)
-                        .collect(Collectors.toList());
+                List<InsertionPoint> invList = ppBe.getValidInventories()
+                    .stream()
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
 
                 Consumer<Text> send = (text) -> {
                     context.getPlayer().sendMessage(text, false);
@@ -54,16 +55,22 @@ public class PipeProbeItem extends Item {
                     send.accept(new TranslatableText("pipe_probe.none"));
                 } else {
                     for (InsertionPoint inventory : invList) {
-                        send.accept(new TranslatableText(world.getBlockState(inventory.blockPos).getBlock().getTranslationKey())
-                                .append(String.format("@(%d, %d, %d)",
-                                        inventory.blockPos.getX(),
-                                        inventory.blockPos.getY(),
-                                        inventory.blockPos.getZ()))
-                        );
+                        send.accept(new TranslatableText(world.getBlockState(inventory.blockPos)
+                            .getBlock()
+                            .getTranslationKey()).append(String.format(
+                            "@(%d, %d, %d)",
+                            inventory.blockPos.getX(),
+                            inventory.blockPos.getY(),
+                            inventory.blockPos.getZ()
+                        )));
 
-                        send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.insert_direction.header").append(new TranslatableText("pipe_probe.insert_direction." + inventory.side.asString()))));
-                        send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.priority").append(new LiteralText("" + inventory.priority))));
-                        send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.distance").append(new LiteralText("" + inventory.distance))));
+                        send.accept(new LiteralText("  ").append(new TranslatableText(
+                            "pipe_probe.insert_direction.header").append(new TranslatableText(
+                            "pipe_probe.insert_direction." + inventory.side.asString()))));
+                        send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.priority").append(new LiteralText(
+                            "" + inventory.priority))));
+                        send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.distance").append(new LiteralText(
+                            "" + inventory.distance))));
 
                         if (!inventory.filters.isEmpty()) {
                             send.accept(new LiteralText("  ").append(new TranslatableText("pipe_probe.filters_header")));
@@ -74,7 +81,8 @@ public class PipeProbeItem extends Item {
                                 send.accept(new LiteralText("      ").append(new TranslatableText("pipe_probe.flags")));
                                 for (int i = 0; i < filter.flags.length; i++) {
                                     if (filter.flags[i]) {
-                                        send.accept(new LiteralText("        ").append(new TranslatableText("container.filtered_pipe.advanced.flag" + i + ".help")));
+                                        send.accept(new LiteralText("        ").append(new TranslatableText(
+                                            "container.filtered_pipe.advanced.flag" + i + ".help")));
                                     }
                                 }
 
@@ -90,9 +98,9 @@ public class PipeProbeItem extends Item {
                 }
             } else if (be instanceof FilteredPipeBlockEntity) {
                 OpenAdvancedFilterScreenS2C.sendToPlayer(
-                        (ServerPlayerEntity) context.getPlayer(),
-                        context.getBlockPos(),
-                        ((FilteredPipeBlockEntity) be).flags
+                    (ServerPlayerEntity) context.getPlayer(),
+                    context.getBlockPos(),
+                    ((FilteredPipeBlockEntity) be).flags
                 );
             }
         }

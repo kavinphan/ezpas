@@ -1,9 +1,9 @@
 package com.kqp.ezpas.block.entity;
 
+import com.kqp.ezpas.Ezpas;
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.container.FilteredPipeScreenHandler;
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
-import com.kqp.ezpas.Ezpas;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -62,12 +62,11 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
 
     @Override
     protected ScreenHandler createScreenHandler(int syncId, PlayerInventory playerInventory) {
-        return new FilteredPipeScreenHandler(syncId, playerInventory, this,
-                getFilterType());
+        return new FilteredPipeScreenHandler(syncId, playerInventory, this, getFilterType());
     }
 
     @Override
-    public void readNbt( NbtCompound tag) {
+    public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
 
         this.inventory = DefaultedList.ofSize(this.size(), ItemStack.EMPTY);

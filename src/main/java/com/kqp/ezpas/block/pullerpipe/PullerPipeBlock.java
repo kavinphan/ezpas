@@ -2,12 +2,7 @@ package com.kqp.ezpas.block.pullerpipe;
 
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.FacingBlock;
-import net.minecraft.block.Material;
+import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemPlacementContext;
@@ -18,8 +13,8 @@ import net.minecraft.util.BlockMirror;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.world.WorldAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldAccess;
 
 public abstract class PullerPipeBlock extends BlockWithEntity {
     public static final DirectionProperty FACING;
@@ -27,13 +22,12 @@ public abstract class PullerPipeBlock extends BlockWithEntity {
     public PullerPipeBlock() {
         super(FabricBlockSettings.of(Material.METAL));
 
-        this.setDefaultState(this.stateManager.getDefaultState()
-                .with(FACING, Direction.NORTH)
-        );
+        this.setDefaultState(this.stateManager.getDefaultState().with(FACING, Direction.NORTH));
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState, WorldAccess world, BlockPos pos, BlockPos posFrom) {
+    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState newState,
+                                                WorldAccess world, BlockPos pos, BlockPos posFrom) {
         BlockEntity be = world.getBlockEntity(pos);
 
         if (be instanceof PullerPipeBlockEntity) {

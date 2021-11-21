@@ -46,24 +46,24 @@ public class AdvancedFilterScreen extends Screen {
             for (int j = 0; j < 4; j++) {
                 int index = i * 4 + j;
 
-                buttons[index] = new ButtonWidget(
-                        x + 18 + j * 40,
-                        y + 17 + i * 30,
-                        20,
-                        20,
-                        new LiteralText(""),
-                        (button) -> {
-                            flags[index] = !flags[index];
+                buttons[index] = new ButtonWidget(x + 18 + j * 40,
+                    y + 17 + i * 30,
+                    20,
+                    20,
+                    new LiteralText(""),
+                    (button) -> {
+                        flags[index] = !flags[index];
 
-                            SetAdvancedFilterFlagC2S.sendToServer(blockPos, index, flags[index]);
-                        },
-                        (button, matrices, mouseX, mouseY) -> {
-                            List<Text> text = new ArrayList();
-                            text.add(new TranslatableText("container.filtered_pipe.advanced.flag" + index + ".help"));
-                            text.add(new TranslatableText("container.filtered_pipe.advanced.flag.current_state").append(new LiteralText("" + flags[index])));
+                        SetAdvancedFilterFlagC2S.sendToServer(blockPos, index, flags[index]);
+                    },
+                    (button, matrices, mouseX, mouseY) -> {
+                        List<Text> text = new ArrayList();
+                        text.add(new TranslatableText("container.filtered_pipe.advanced.flag" + index + ".help"));
+                        text.add(new TranslatableText("container.filtered_pipe.advanced.flag.current_state").append(new LiteralText(
+                            "" + flags[index])));
 
-                            this.renderTooltip(matrices, text, mouseX, mouseY);
-                        }
+                        this.renderTooltip(matrices, text, mouseX, mouseY);
+                    }
                 );
 
                 this.addDrawableChild(buttons[index]);
@@ -137,26 +137,10 @@ public class AdvancedFilterScreen extends Screen {
         return true;
     }
 
-    private static final ItemStack[] FLAG_ICONS = {
-            new ItemStack(Items.WATER_BUCKET),
-            new ItemStack(Items.LEVER),
-            new ItemStack(Items.WHITE_WOOL),
-            new ItemStack(Items.PAPER),
-            new ItemStack(Items.NAME_TAG),
-            new ItemStack(Items.IRON_SWORD),
-            new ItemStack(Items.GLASS_BOTTLE),
-            new ItemStack(Items.FURNACE),
-            new ItemStack(Items.HONEY_BOTTLE),
-            new ItemStack(Items.REDSTONE_TORCH),
-            ItemStack.EMPTY,
-            ItemStack.EMPTY,
-            ItemStack.EMPTY,
-            ItemStack.EMPTY,
-            ItemStack.EMPTY,
-            ItemStack.EMPTY,
-            ItemStack.EMPTY,
-            ItemStack.EMPTY,
-            ItemStack.EMPTY,
-            ItemStack.EMPTY,
-    };
+    private static final ItemStack[] FLAG_ICONS = {new ItemStack(Items.WATER_BUCKET), new ItemStack(Items.LEVER),
+        new ItemStack(Items.WHITE_WOOL), new ItemStack(Items.PAPER), new ItemStack(Items.NAME_TAG),
+        new ItemStack(Items.IRON_SWORD), new ItemStack(Items.GLASS_BOTTLE), new ItemStack(Items.FURNACE),
+        new ItemStack(Items.HONEY_BOTTLE), new ItemStack(Items.REDSTONE_TORCH), ItemStack.EMPTY, ItemStack.EMPTY,
+        ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY,
+        ItemStack.EMPTY, ItemStack.EMPTY,};
 }

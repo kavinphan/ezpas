@@ -32,11 +32,8 @@ public class InsertionPoint {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof InsertionPoint
-                && blockPos.equals(((InsertionPoint) obj).blockPos)
-                && side.equals(((InsertionPoint) obj).side)
-                && filters.equals(((InsertionPoint) obj).filters)
-                && priority == ((InsertionPoint) obj).priority;
+        return obj instanceof InsertionPoint && blockPos.equals(((InsertionPoint) obj).blockPos) && side.equals(((InsertionPoint) obj).side) && filters.equals(
+            ((InsertionPoint) obj).filters) && priority == ((InsertionPoint) obj).priority;
     }
 
     public int getPriority() {
