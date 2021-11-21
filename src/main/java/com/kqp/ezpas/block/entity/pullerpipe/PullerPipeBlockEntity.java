@@ -17,14 +17,13 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.minecraft.block.*;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.FacingBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -33,7 +32,6 @@ import net.minecraft.world.WorldAccess;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
 public abstract class PullerPipeBlockEntity extends BlockEntity {
@@ -60,6 +58,22 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         this.subTickRate = subTickRate;
     }
 
+    /**
+     * Mark puller pipe to recalculate its insertion points.
+     */
+    public void markToRecalculate() {
+        this.shouldRecalculate = true;
+    }
+
+    /**
+     * Gets all insertion points.
+     *
+     * @return List of insertion points.
+     */
+    public List<InsertionPoint> getInsertionPoints() {
+        return prioritizedInsertionPoints.stream().flatMap(List::stream).collect(Collectors.toList());
+    }
+
     @Override
     public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
@@ -77,10 +91,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         tag.putInt("CurrentPriority", currentPriority);
 
         return tag;
-    }
-
-    public static void serverTick(World world, BlockPos pos, BlockState state, PullerPipeBlockEntity blockEntity) {
-        blockEntity.serverTick();
     }
 
     private void serverTick() {
@@ -108,10 +118,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         }
 
         // Mark to recalculate and return if the source storage is missing.
-         cachedExtractionStorage = ItemStorage.SIDED.find(world,
-            getExtractionBlockPos(),
-            getExtractionDirection()
-        );
+        cachedExtractionStorage = ItemStorage.SIDED.find(world, getExtractionBlockPos(), getExtractionFace());
         if (cachedExtractionStorage == null || !cachedExtractionStorage.supportsExtraction()) {
             markToRecalculate();
             return;
@@ -148,7 +155,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         Map<BlockPos, List<Path>> pathMap = new HashMap<BlockPos, List<Path>>();
 
         // Build inventory graph.
-        calculateInsertionPoints(newIPs, getInsertionBlockPos(), getInsertionDirection(), pathMap, rootPath);
+        calculateInsertionPoints(newIPs, getInsertionBlockPos(), getInsertionFace(), pathMap, rootPath);
 
         // Group insertion points by priority.
         prioritizedInsertionPoints.clear();
@@ -265,7 +272,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
                 }
             }
 
-            InsertionPoint newIP = new InsertionPoint(world,
+            InsertionPoint newIP = new InsertionPoint(
+                world,
                 blockPos,
                 inDir.getOpposite(),
                 currPath.getFilters(),
@@ -295,7 +303,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     /**
      * Performs all extractions that this puller block should do.
      */
-    public void performExtractions() {
+    private void performExtractions() {
         // Set current priority to highest (0).
         currentPriority = 0;
 
@@ -311,7 +319,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     /**
      * Performs one extraction.
      */
-    public void performExtraction() {
+    private void performExtraction() {
         List<InsertionPoint> ips = prioritizedInsertionPoints.stream()
             .flatMap(List::stream)
             .collect(Collectors.toList());
@@ -377,94 +385,12 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     }
 
     /**
-     * Returns true if successful.
+     * Gets the list of insertion points for a given priority.
      *
-     * @param from
-     * @param to
-     * @param extractionSide
-     * @param insertSide
-     * @param filters
-     * @return
+     * @param priority Priority to look for.
+     * @return List of insertion points.
      */
-    public boolean extract(Inventory from, Inventory to, Direction extractionSide, Direction insertSide,
-                           List<Filter> filters) {
-        // First find a stack to extract
-        ItemStack extractionStack = null;
-        int extractionSlot = -1;
-        int insertionSlot = -1;
-
-        // Iterate through available slots to extract from
-        int[] availableExtractionSlots = getAvailableSlots(from, extractionSide);
-
-        for (int i = 0; i < availableExtractionSlots.length; i++) {
-            int queryExtractionSlot = availableExtractionSlots[i];
-            ItemStack queryStack = from.getStack(queryExtractionSlot);
-
-            if (queryStack != ItemStack.EMPTY && stackPasses(queryStack, filters, to) && canExtract(from,
-                queryExtractionSlot,
-                queryStack,
-                extractionSide
-            )) {
-                // Only continue if stack is not empty
-                // Query the receiving inventory to see what slot it can be inserted into
-                int queryInsertionSlot = getInsertionSlotForStack(to, queryStack, insertSide);
-
-                if (queryInsertionSlot != -1) {
-                    // If the slot is valid (!= -1) then set the appropriate fields, break, and extract and insert
-
-                    extractionStack = queryStack;
-                    extractionSlot = queryExtractionSlot;
-                    insertionSlot = queryInsertionSlot;
-
-                    break;
-                }
-            }
-        }
-
-        // Continue if all fields are valid
-        if (extractionStack != null && extractionSlot != -1 && insertionSlot != -1) {
-            ItemStack currentStackInSlot = to.getStack(insertionSlot);
-
-            // The amount to extract is the minimum of the extraction rate and the get of the stack to extract
-            int amountToExtract = Math.min(extractionSize, extractionStack.getCount());
-
-            if (currentStackInSlot == ItemStack.EMPTY || currentStackInSlot.getCount() == 0) {
-                // If current stack is empty, just replace it
-
-                to.setStack(insertionSlot, from.removeStack(extractionSlot, amountToExtract));
-            } else {
-                // Calculate the new amount if the extraction and insertion goes through
-                int newInsertionStackCount = currentStackInSlot.getCount() + amountToExtract;
-                int maxCount = currentStackInSlot.getMaxCount();
-
-                if (newInsertionStackCount <= currentStackInSlot.getMaxCount()) {
-                    // If the new count is below the max, just set current stack to max and decrement from extraction stack
-
-                    currentStackInSlot.setCount(newInsertionStackCount);
-                    extractionStack.decrement(amountToExtract);
-                } else {
-                    // If there is overfill, set current stack to max and then resolve extraction amount
-
-                    currentStackInSlot.setCount(maxCount);
-
-                    int newExtractionStackCount = extractionStack.getCount(); // Get current count
-                    newExtractionStackCount -= amountToExtract; // Simulate extraction
-                    newExtractionStackCount += newInsertionStackCount - maxCount; // Return overflow
-
-                    extractionStack.setCount(newExtractionStackCount);
-                }
-            }
-
-
-            sanitizeSlot(from, extractionSlot);
-            sanitizeSlot(to, insertionSlot);
-            return true;
-        }
-
-        return false;
-    }
-
-    public List<InsertionPoint> getListForPriority(int priority) {
+    private List<InsertionPoint> getListForPriority(int priority) {
         while (priority >= prioritizedInsertionPoints.size()) {
             prioritizedInsertionPoints.add(new ArrayList<InsertionPoint>());
         }
@@ -472,111 +398,40 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         return prioritizedInsertionPoints.get(priority);
     }
 
+    /**
+     * Gets the block position of the block to be extracted from.
+     *
+     * @return Block position of the block to be extracted from.
+     */
     private BlockPos getExtractionBlockPos() {
-        return this.pos.offset(getExtractionDirection());
+        return this.pos.offset(getExtractionFace());
     }
 
+    /**
+     * Gets the block position of the block to be inserted into.
+     *
+     * @return Block position of the block to be inserted into.
+     */
     private BlockPos getInsertionBlockPos() {
-        return this.pos.offset(getInsertionDirection());
+        return this.pos.offset(getInsertionFace());
     }
 
-    private Direction getExtractionDirection() {
+    /**
+     * Gets the direction of the side that the puller pipe is extracting from.
+     *
+     * @return The direction of the side that the puller pipe is extracting from.
+     */
+    private Direction getExtractionFace() {
         return this.world.getBlockState(this.pos).get(FacingBlock.FACING);
     }
 
-    private Direction getInsertionDirection() {
+    /**
+     * Gets the direction of the side that the puller pipe is inserting into.
+     *
+     * @return The direction of the side that the puller pipe is inserting into.
+     */
+    private Direction getInsertionFace() {
         return this.world.getBlockState(this.pos).get(FacingBlock.FACING).getOpposite();
-    }
-
-    private static void sanitizeSlot(Inventory inv, int slot) {
-        ItemStack stackInSlot = inv.getStack(slot);
-
-        if (stackInSlot.getItem() == Items.AIR || stackInSlot.getCount() == 0) {
-            inv.setStack(slot, ItemStack.EMPTY);
-        }
-    }
-
-    public static Inventory getInventoryAt(World world, BlockPos blockPos) {
-        Inventory inventory = null;
-        BlockState blockState = world.getBlockState(blockPos);
-        Block block = blockState.getBlock();
-
-        if (block instanceof InventoryProvider) {
-            inventory = ((InventoryProvider) block).getInventory(blockState, world, blockPos);
-        } else if (block instanceof BlockWithEntity) {
-            BlockEntity blockEntity = world.getBlockEntity(blockPos);
-
-            if (blockEntity instanceof Inventory) {
-                inventory = (Inventory) blockEntity;
-
-                if (inventory instanceof ChestBlockEntity && block instanceof ChestBlock) {
-                    inventory = ChestBlock.getInventory((ChestBlock) block, blockState, world, blockPos, true);
-                }
-            }
-        }
-
-        return inventory;
-    }
-
-    /**
-     * Returns whether or not the slot and item stack can be extracted from the inventory from a given side.
-     *
-     * @param inv       The inventory
-     * @param slot      The slot
-     * @param itemStack The item stack
-     * @param side      The side
-     * @return True if it can be extracted
-     */
-    private static boolean canExtract(Inventory inv, int slot, ItemStack itemStack, Direction side) {
-        if (inv instanceof SidedInventory) {
-            return ((SidedInventory) inv).canExtract(slot, itemStack, side);
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * Attempts to find a valid slot for a given item stack to be inserted into the given inventory and side.
-     *
-     * @param inv   Inventory to insert into
-     * @param stack Item Stack to insert into inventory
-     * @param side  Side to insert into
-     * @return -1 if no slot could be found
-     */
-    private static int getInsertionSlotForStack(Inventory inv, ItemStack stack, Direction side) {
-        int[] availableSlots = getAvailableSlots(inv, side);
-
-        for (int slot : availableSlots) {
-            if (inv.isValid(slot, stack)) {
-                if (inv instanceof SidedInventory) {
-                    if (((SidedInventory) inv).canInsert(slot, stack, side)) {
-                        ItemStack queryStack = inv.getStack(slot);
-
-                        // canInsert doesn't check for item parity
-                        if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0 || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack,
-                            stack
-                        ) && ItemStack.areNbtEqual(queryStack, stack))) {
-                            return slot;
-                        }
-                    }
-                } else {
-                    ItemStack queryStack = inv.getStack(slot);
-                    if (queryStack == ItemStack.EMPTY || queryStack.getCount() == 0 || (queryStack.getCount() < queryStack.getMaxCount() && ItemStack.areItemsEqual(queryStack,
-                        stack
-                    ) && ItemStack.areNbtEqual(queryStack, stack))) {
-                        return slot;
-                    }
-                }
-            }
-        }
-
-        return -1;
-    }
-
-    private static int[] getAvailableSlots(Inventory inventory, Direction side) {
-        return inventory instanceof SidedInventory ? ((SidedInventory) inventory).getAvailableSlots(side) : IntStream.range(0,
-            inventory.size()
-        ).toArray();
     }
 
     /**
@@ -594,6 +449,10 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         }
 
         return true;
+    }
+
+    public static void serverTick(World world, BlockPos pos, BlockState state, PullerPipeBlockEntity blockEntity) {
+        blockEntity.serverTick();
     }
 
     /**
@@ -636,14 +495,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         }
     }
 
-    public void markToRecalculate() {
-        this.shouldRecalculate = true;
-    }
-
-    public List<List<InsertionPoint>> getValidInventories() {
-        return prioritizedInsertionPoints;
-    }
-
     /**
      * Determines if the query block can propagate items.
      *
@@ -651,7 +502,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
      * @param prevBlock  The previous block in the path.
      * @return True if the query block can propagate items.
      */
-    public static boolean canPropagate(Block queryBlock, Block prevBlock) {
+    private static boolean canPropagate(Block queryBlock, Block prevBlock) {
         // First check is if the query block is a PipeBlock
         boolean canPropagate = queryBlock instanceof PipeBlock;
 
@@ -670,7 +521,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
      *
      * @param ips List of insertion points.
      */
-    public static void deGapPriorities(List<InsertionPoint> ips) {
+    private static void deGapPriorities(List<InsertionPoint> ips) {
         ips.sort(Comparator.comparing(InsertionPoint::getPriority));
 
         int currentPriority = -1;

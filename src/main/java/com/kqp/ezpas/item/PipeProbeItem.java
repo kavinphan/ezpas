@@ -37,10 +37,7 @@ public class PipeProbeItem extends Item {
 
             if (be instanceof PullerPipeBlockEntity) {
                 PullerPipeBlockEntity ppBe = ((PullerPipeBlockEntity) be);
-                List<InsertionPoint> invList = ppBe.getValidInventories()
-                    .stream()
-                    .flatMap(List::stream)
-                    .collect(Collectors.toList());
+                List<InsertionPoint> ips = ppBe.getInsertionPoints();
 
                 Consumer<Text> send = (text) -> {
                     context.getPlayer().sendMessage(text, false);
@@ -51,10 +48,10 @@ public class PipeProbeItem extends Item {
                 };
 
                 send.accept(new TranslatableText("pipe_probe.message_header"));
-                if (invList.isEmpty()) {
+                if (ips.isEmpty()) {
                     send.accept(new TranslatableText("pipe_probe.none"));
                 } else {
-                    for (InsertionPoint inventory : invList) {
+                    for (InsertionPoint inventory : ips) {
                         send.accept(new TranslatableText(world.getBlockState(inventory.blockPos)
                             .getBlock()
                             .getTranslationKey()).append(String.format(
