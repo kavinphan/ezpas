@@ -20,12 +20,12 @@ public class InsertionPoint {
 
     public int priority;
 
-    public final int distance;
+    public int distance;
 
     public Storage<ItemVariant> storage;
 
-    public InsertionPoint(World world, BlockPos blockPos, Direction side, List<Filter> filters, int priority, int distance,
-                          Storage<ItemVariant> storage) {
+    public InsertionPoint(World world, BlockPos blockPos, Direction side, List<Filter> filters, int priority,
+                          int distance, Storage<ItemVariant> storage) {
         this.world = world;
         this.blockPos = blockPos;
         this.side = side;
@@ -42,12 +42,17 @@ public class InsertionPoint {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof InsertionPoint && blockPos.equals(((InsertionPoint) obj).blockPos) && side.equals(((InsertionPoint) obj).side) && filters.equals(
-            ((InsertionPoint) obj).filters) && priority == ((InsertionPoint) obj).priority;
+        return obj instanceof InsertionPoint && blockPos.equals(((InsertionPoint) obj).blockPos) &&
+               side.equals(((InsertionPoint) obj).side) && filters.equals(((InsertionPoint) obj).filters) &&
+               priority == ((InsertionPoint) obj).priority;
     }
 
     public int getPriority() {
         return priority;
+    }
+
+    public int getDistance() {
+        return distance;
     }
 
     public void syncStorage() {
@@ -55,6 +60,6 @@ public class InsertionPoint {
     }
 
     public boolean invalid() {
-        return storage == null && !storage.supportsInsertion();
+        return storage == null || !storage.supportsInsertion();
     }
 }

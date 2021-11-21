@@ -3,10 +3,9 @@ package com.kqp.ezpas.block;
 import com.kqp.ezpas.block.entity.pullerpipe.PullerPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Material;
-import net.minecraft.block.ShapeContext;
+import net.minecraft.block.*;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.state.StateManager;
@@ -112,7 +111,12 @@ public class PipeBlock extends Block {
             return facing == dir.getOpposite();
         }
 
-        return block instanceof PipeBlock || PullerPipeBlockEntity.getInventoryAt((World) world, pos) != null;
+        BlockEntity be = world.getBlockEntity(pos);
+
+        boolean isChest = block instanceof AbstractChestBlock;
+        boolean hasInventory = be instanceof Inventory;
+
+        return block instanceof PipeBlock || isChest || hasInventory;
     }
 
     /**

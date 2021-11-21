@@ -8,7 +8,7 @@ import com.kqp.ezpas.block.RigidPipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
 import com.kqp.ezpas.block.pullerpipe.PullerPipeBlock;
 import com.kqp.ezpas.pipe.InsertionPoint;
-import com.kqp.ezpas.pipe.Path;
+import com.kqp.ezpas.pipe.PathNode;
 import com.kqp.ezpas.pipe.filter.Filter;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -22,7 +22,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.FacingBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
@@ -144,49 +143,49 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
      * Rebuild list of insertion points.
      */
     private void calculateInsertionPoints() {
+        // Clear insertion points list.
+        prioritizedInsertionPoints.clear();
+
         // Create initial path to prevent back-tracking.
-        Path rootPath = new Path();
-        rootPath.addVisited(this.pos);
+        PathNode rootPathNode = new PathNode(this.pos);
 
         // Create list of insertion points.
         List<InsertionPoint> newIPs = new ArrayList<InsertionPoint>();
 
         // Create path map.
-        Map<BlockPos, List<Path>> pathMap = new HashMap<BlockPos, List<Path>>();
+        Map<BlockPos, List<PathNode>> pathMap = new HashMap<BlockPos, List<PathNode>>();
 
         // Build inventory graph.
-        calculateInsertionPoints(newIPs, getInsertionBlockPos(), getInsertionFace(), pathMap, rootPath);
+        calculateInsertionPoints(newIPs, getInsertionBlockPos(), getInsertionFace(), pathMap, rootPathNode);
 
-        // Group insertion points by priority.
-        prioritizedInsertionPoints.clear();
-        for (InsertionPoint ip : newIPs) {
-            getListForPriority(ip.priority).add(ip);
-        }
-
-        // Remove gaps in priorities (ie [0, 5, 7] -> [0, 1, 2])
+        // Remove gaps in priorities (ie [0, 5, 7] -> [0, 1, 2]).
         deGapPriorities(newIPs);
 
         // Add insertion points to the prioritized list of lists of insertion points.
         for (InsertionPoint ip : newIPs) {
             getListForPriority(ip.priority).add(ip);
         }
+
+        prioritizedInsertionPoints.forEach(list -> list.sort(Comparator.comparing(InsertionPoint::getDistance)));
     }
 
     /**
      * Build list of all insertion points accessible from the given block.
      *
-     * @param ipList   List of insertion points.
-     * @param blockPos Current block position to inspect.
-     * @param inDir    Inbound direction, which is the opposite of the receiving side.
-     * @param pathMap  Map of block positions to their paths.
-     * @param prevPath Current path.
+     * @param ipList       List of insertion points.
+     * @param blockPos     Current block position to inspect.
+     * @param inDir        Inbound direction, which is the opposite of the receiving side.
+     * @param pathMap      Map of block positions to their paths.
+     * @param prevPathNode Current path.
      */
     private void calculateInsertionPoints(List<InsertionPoint> ipList, BlockPos blockPos, Direction inDir,
-                                          Map<BlockPos, List<Path>> pathMap, Path prevPath) {
+                                          Map<BlockPos, List<PathNode>> pathMap, PathNode prevPathNode) {
         // Ignore visited blocks.
-        if (prevPath.hasVisited(blockPos)) {
+        if (prevPathNode.hasVisited(blockPos)) {
             return;
         }
+
+        System.out.println(prevPathNode.priority);
 
         Block currBlock = world.getBlockState(blockPos).getBlock();
         BlockPos prevBlockPos = blockPos.offset(inDir.getOpposite());
@@ -196,8 +195,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
         // If so, it should inspect surrounding blocks for insertion points.
         if (canPropagate(currBlock, prevBlock)) {
             // Create new path for the current block.
-            Path currPath = prevPath.branch();
-            currPath.addVisited(blockPos);
+            PathNode currPathNode = prevPathNode.branch(blockPos);
 
             // If the current block is a filtered pipe, apply its filters to
             // the current path ONLY if it's enabled and persisted.
@@ -213,46 +211,50 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
 
                 // Only add filters to path if enabled and the persist flag is enabled.
                 if (enabled && persist) {
-                    currPath.addFilter(new Filter(filterPipeBE));
+                    currPathNode.addFilter(new Filter(filterPipeBE));
                 }
             }
 
             // If the current block is a dense pipe, increment the new path's priority.
             // This ensures that down stream insertion points are prioritized less.
             if (currBlock == Ezpas.DENSE_PIPE) {
-                currPath.priority++;
+                currPathNode.priority++;
             }
 
             // Check to see if this block position has already been visited by another path.
             // We won't search further if there exists a path for this block with 1) the same
             // filters or 2) a higher priority (0 = highest, infinity = lowest)
-            List<Path> pathList = pathMap.computeIfAbsent(blockPos, x -> new ArrayList<>());
-            for (Path existingPath : pathList) {
-                if (existingPath.getFilters()
-                    .equals(currPath.getFilters()) || existingPath.priority <= currPath.priority) {
+            List<PathNode> pathNodeList = pathMap.computeIfAbsent(blockPos, x -> new ArrayList<>());
+            for (int i = 0; i < pathNodeList.size(); i++) {
+                PathNode existingPathNode = pathNodeList.get(i);
+
+                if (existingPathNode.priority < currPathNode.priority) {
                     return;
                 }
             }
 
             // Add the new path to the path map
-            pathList.add(currPath);
+            pathNodeList.add(currPathNode);
 
             // Recursive call in all directions.
             for (Direction searchDirection : Direction.values()) {
-                calculateInsertionPoints(ipList, blockPos.offset(searchDirection), searchDirection, pathMap, currPath);
+                calculateInsertionPoints(ipList,
+                    blockPos.offset(searchDirection),
+                    searchDirection,
+                    pathMap,
+                    currPathNode
+                );
             }
         }
 
-        // Second case is if the current block is insertable.
+        // Second case is if the current block is insertable and not a pipe.
         // We also check to see if the previous block was a rigid pipe,
         // which does not propagate items to insertion points.
         Storage<ItemVariant> storage = ItemStorage.SIDED.find(world, blockPos, inDir.getOpposite());
-        if (storage != null && storage.supportsInsertion() && !(prevBlock instanceof RigidPipeBlock)) {
+        if (storage != null && storage.supportsInsertion() && !(currBlock instanceof PipeBlock) &&
+            !(prevBlock instanceof RigidPipeBlock)) {
             // Create new path for the current block.
-            Path currPath = prevPath.branch();
-
-            // TODO possibly remove this
-            currPath.addVisited(blockPos);
+            PathNode currPathNode = prevPathNode.branch(blockPos);
 
             // Add non-persistent filtered pipes
             if (prevBlock instanceof FilteredPipeBlock) {
@@ -267,36 +269,43 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
 
                     // Only add filters to path if enabled.
                     if (enabled) {
-                        currPath.addFilter(new Filter(filterPipeBE));
+                        currPathNode.addFilter(new Filter(filterPipeBE));
                     }
                 }
             }
 
-            InsertionPoint newIP = new InsertionPoint(
-                world,
+            InsertionPoint newIP = new InsertionPoint(world,
                 blockPos,
                 inDir.getOpposite(),
-                currPath.getFilters(),
-                currPath.priority,
-                currPath.getVisitedCount(),
+                currPathNode.getFilters(),
+                currPathNode.priority,
+                currPathNode.getVisitedCount(),
                 storage
             );
 
-            // If an insertion points exists with the same parameters except
-            // it has a longer path, replace it.
-            // TODO this exploits the equals method :(
-            int index = ipList.indexOf(newIP);
-            if (index != -1) {
-                InsertionPoint similarInventory = ipList.get(index);
+            // We always want the insertion point with the highest priority and lowest distance.
+            // This loop ensures that this is maintained.
+            for (int i = 0; i < ipList.size(); i++) {
+                InsertionPoint ip = ipList.get(i);
 
-                // If the new inventory is a shorter path, replace the old one
-                if (newIP.distance < similarInventory.distance) {
-                    ipList.set(index, newIP);
+                if (ip.blockPos.equals(newIP.blockPos) && ip.side == newIP.side && ip.filters.equals(newIP.filters)) {
+                    if (ip.priority < newIP.priority) {
+                        return;
+                    } else if (ip.priority == newIP.priority) {
+                        if (ip.distance <= newIP.distance) {
+                            return;
+                        } else {
+                            ipList.remove(i);
+                            i--;
+                        }
+                    } else {
+                        ipList.remove(i);
+                        i--;
+                    }
                 }
-            } else {
-                // If nothing similar exists, add it.
-                ipList.add(newIP);
             }
+
+            ipList.add(newIP);
         }
     }
 
@@ -306,11 +315,20 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     private void performExtractions() {
         // Set current priority to highest (0).
         currentPriority = 0;
+        validateRRCounter();
 
         // Perform extractions
         for (int i = 0; i < subTickRate; i++) {
-            validateRRCounter();
-            performExtraction();
+            // For each extraction, we'll do x attempts, where x is how many
+            // insertion points there are in total.
+            final int maxAttempts = prioritizedInsertionPoints.stream().map(List::size).reduce(0, Integer::sum);
+            int attempts = 0;
+            boolean success = false;
+            while (attempts < maxAttempts && !success) {
+                success = performExtraction();
+                attempts++;
+                incrementRRCounter();
+            }
         }
 
         coolDown = speed;
@@ -318,15 +336,15 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
 
     /**
      * Performs one extraction.
+     *
+     * @return True if success;
      */
-    private void performExtraction() {
-        List<InsertionPoint> ips = prioritizedInsertionPoints.stream()
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
-
+    private boolean performExtraction() {
+        InsertionPoint ip = getListForPriority(currentPriority).get(rrCounter);
+        boolean success = false;
         Transaction trx = Transaction.openOuter();
 
-        main:
+        // Attempt to extract and insert every resource in the extraction storage.
         for (StorageView<ItemVariant> iv : cachedExtractionStorage.iterable(trx)) {
             ItemVariant resource = iv.getResource();
 
@@ -334,51 +352,61 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
                 continue;
             }
 
-            // Attempt extraction from source storage.
-            long extracted = iv.extract(resource, extractionSize, trx);
-            if (extracted == 0) {
+            // Get slots of the insertion point.
+            List<SingleSlotStorage<ItemVariant>> slots = StreamSupport.stream(ip.storage.iterable(trx).spliterator(),
+                    false
+                )
+                .filter(sv -> sv instanceof SingleSlotStorage<ItemVariant>)
+                .map(sv -> (SingleSlotStorage<ItemVariant>) sv)
+                .collect(Collectors.toList());
+
+            // Continue if resource does not pass insertion point's filters.
+            if (!stackPasses(resource.toStack(), ip.filters, slots)) {
                 continue;
             }
 
-            for (InsertionPoint ip : ips) {
-                List<SingleSlotStorage<ItemVariant>> slots = StreamSupport.stream(ip.storage.iterable(trx)
-                        .spliterator(), false)
-                    .filter(sv -> sv instanceof SingleSlotStorage<ItemVariant>)
-                    .map(sv -> (SingleSlotStorage<ItemVariant>) sv)
-                    .collect(Collectors.toList());
-
-                // Attempt insertion into target insertion point.
-                // TODO handle when extracted > inserted
-                long inserted = StorageUtil.insertStacking(slots, resource, extracted, trx);
-                if (extracted == inserted && extracted > 0) {
-                    break main;
+            // Attempt insertion into target insertion point using how many resources there are.
+            long inserted = StorageUtil.insertStacking(slots, resource, iv.getAmount(), trx);
+            if (inserted > 0) {
+                // Attempt extraction from source storage.
+                // Continue to next resource if unable to.
+                long extracted = iv.extract(resource, inserted, trx);
+                if (extracted == 0) {
+                    continue;
                 }
+
+                success = true;
+                break;
             }
         }
 
-        trx.commit();
+        if (success) {
+            trx.commit();
+        } else {
+            trx.abort();
+        }
+
+        return success;
     }
 
-    /**
-     * Validates the round robin counter so that it doesn't extract from an invalid index.
-     */
     private void validateRRCounter() {
         if (rrCounter >= getListForPriority(currentPriority).size()) {
             rrCounter = 0;
         }
     }
 
-    private void incrementRrCounter() {
+    private void incrementRRCounter() {
         rrCounter++;
         if (rrCounter >= getListForPriority(currentPriority).size()) {
             rrCounter = 0;
+            incrementCurrentPriority();
         }
     }
 
     /**
      * Sets the current priority to the next lowest priority (0 -> 1)
      */
-    private void gotoNextPriority() {
+    private void incrementCurrentPriority() {
         currentPriority++;
         if (currentPriority >= prioritizedInsertionPoints.size()) {
             currentPriority = 0;
@@ -442,9 +470,10 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
      * @param filters
      * @return
      */
-    private static boolean stackPasses(ItemStack itemStack, List<Filter> filters, Inventory destination) {
+    private static boolean stackPasses(ItemStack itemStack, List<Filter> filters,
+                                       List<SingleSlotStorage<ItemVariant>> destSlots) {
         for (Filter filter : filters) {
-            if (!filter.stackPasses(itemStack, destination)) {
+            if (!filter.stackPasses(itemStack, destSlots)) {
                 return false;
             }
         }

@@ -3,6 +3,8 @@ package com.kqp.ezpas.pipe.filter;
 import com.google.common.collect.Sets;
 import com.kqp.ezpas.block.FilteredPipeBlock;
 import com.kqp.ezpas.block.entity.FilteredPipeBlockEntity;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -24,7 +26,7 @@ public class Filter {
         this.flags = filterPipe.flags;
     }
 
-    public boolean stackPasses(ItemStack queryStack, Inventory destination) {
+    public boolean stackPasses(ItemStack queryStack, List<SingleSlotStorage<ItemVariant>> destSlots) {
         // Equality checks must equal this condition for the stack to pass
         boolean passingEqualityCondition = type == FilteredPipeBlock.Type.WHITELIST;
 
@@ -125,10 +127,8 @@ public class Filter {
         if (flags[FilteredPipeBlockEntity.ONE_IN_INV_FLAG]) {
             boolean found = false;
 
-            for (int i = 0; i < destination.size(); i++) {
-                ItemStack invStack = destination.getStack(i);
-
-                if (invStack.getItem() == queryStack.getItem()) {
+            for (SingleSlotStorage<ItemVariant> slot : destSlots) {
+                if (slot.getResource().getItem() == queryStack.getItem()) {
                     found = true;
                     break;
                 }
@@ -143,11 +143,9 @@ public class Filter {
                 needed += filterStack.getCount();
             }
 
-            for (int i = 0; i < destination.size(); i++) {
-                ItemStack invStack = destination.getStack(i);
-
-                if (invStack.getItem() == queryStack.getItem()) {
-                    needed -= invStack.getCount();
+            for (SingleSlotStorage<ItemVariant> slot : destSlots) {
+                if (slot.getResource().getItem() == queryStack.getItem()) {
+                    needed -= slot.getAmount();
 
                     if (needed <= 0) {
                         break;
