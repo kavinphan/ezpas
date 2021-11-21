@@ -348,6 +348,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
                     .collect(Collectors.toList());
 
                 // Attempt insertion into target insertion point.
+                // TODO handle when extracted > inserted
                 long inserted = StorageUtil.insertStacking(slots, resource, extracted, trx);
                 if (extracted == inserted && extracted > 0) {
                     break main;
