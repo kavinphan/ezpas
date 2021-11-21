@@ -44,17 +44,17 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
 
     public final int speed;
     public final int extractionSize;
-    public final int subTickRate;
+    public final int extractionsPerTick;
 
     private Storage<ItemVariant> cachedExtractionStorage = null;
 
     public PullerPipeBlockEntity(BlockEntityType type, BlockPos pos, BlockState state, int speed, int extractionSize,
-                                 int subTickRate) {
+                                 int extractionsPerTick) {
         super(type, pos, state);
 
         this.speed = speed;
         this.extractionSize = extractionSize;
-        this.subTickRate = subTickRate;
+        this.extractionsPerTick = extractionsPerTick;
     }
 
     /**
@@ -185,8 +185,6 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
             return;
         }
 
-        System.out.println(prevPathNode.priority);
-
         Block currBlock = world.getBlockState(blockPos).getBlock();
         BlockPos prevBlockPos = blockPos.offset(inDir.getOpposite());
         Block prevBlock = world.getBlockState(prevBlockPos).getBlock();
@@ -313,12 +311,42 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
      * Performs all extractions that this puller block should do.
      */
     private void performExtractions() {
-        // Set current priority to highest (0).
-        currentPriority = 0;
+        // Validate RR counter so we don't error out.
         validateRRCounter();
 
+        // Counter of how many extractions have been made.
+        int extractions = 0;
+
+        // Before we start at the current rr counter and priority, we'll
+        // attempt to extract at all higher priority IPs. If we encounter
+        // a successful extraction, we'll set the rr counter and current
+        // priority to there.
+        boolean foundNewStartingPos = false;
+        int prevRRCounter = rrCounter;
+        int prevPriority = currentPriority;
+
+        // Set state to first IP.
+        rrCounter = 0;
+        currentPriority = 0;
+
+        while (currentPriority != prevPriority && extractions < extractionsPerTick) {
+            if (performExtraction()) {
+                extractions++;
+                foundNewStartingPos = true;
+                break;
+            }
+
+            incrementRRCounter();
+        }
+
+        // If we weren't able to extract at a higher priority, we should reset to our previous values.
+        if (!foundNewStartingPos) {
+            rrCounter = prevRRCounter;
+            currentPriority = prevPriority;
+        }
+
         // Perform extractions
-        for (int i = 0; i < subTickRate; i++) {
+        for (; extractions < extractionsPerTick; extractions++) {
             // For each extraction, we'll do x attempts, where x is how many
             // insertion points there are in total.
             final int maxAttempts = prioritizedInsertionPoints.stream().map(List::size).reduce(0, Integer::sum);
