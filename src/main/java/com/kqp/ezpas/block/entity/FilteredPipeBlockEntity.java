@@ -11,7 +11,7 @@ import net.minecraft.block.entity.LootableContainerBlockEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -66,13 +66,13 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
     }
 
     @Override
-    public void fromTag(BlockState bs, CompoundTag tag) {
+    public void fromTag(BlockState bs, NbtCompound tag) {
         super.fromTag(bs, tag);
 
         this.inventory = DefaultedList.ofSize(this.size(), ItemStack.EMPTY);
 
         if (!this.deserializeLootTable(tag)) {
-            Inventories.fromTag(tag, this.inventory);
+            Inventories.readNbt(tag, this.inventory);
         }
 
         for (int i = 0; i < flags.length; i++) {
@@ -81,11 +81,11 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
     }
 
     @Override
-    public CompoundTag toTag(CompoundTag tag) {
-        super.toTag(tag);
+    public NbtCompound writeNbt(NbtCompound tag) {
+        super.writeNbt(tag);
 
         if (!this.serializeLootTable(tag)) {
-            Inventories.toTag(tag, this.inventory);
+            Inventories.writeNbt(tag, this.inventory);
         }
 
         for (int i = 0; i < flags.length; i++) {

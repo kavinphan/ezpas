@@ -17,7 +17,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Tickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -51,7 +51,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     }
 
     @Override
-    public void fromTag(BlockState bs, CompoundTag tag) {
+    public void fromTag(BlockState bs, NbtCompound tag) {
         super.fromTag(bs, tag);
         this.rrCounter = tag.getInt("RoundRobinCounter");
         this.coolDown = tag.getInt("ExtractCoolDown");
@@ -59,8 +59,8 @@ public abstract class PullerPipeBlockEntity extends BlockEntity implements Ticka
     }
 
     @Override
-    public CompoundTag toTag(CompoundTag tag) {
-        super.toTag(tag);
+    public NbtCompound writeNbt(NbtCompound tag) {
+        super.writeNbt(tag);
 
         tag.putInt("RoundRobinCounter", rrCounter);
         tag.putInt("ExtractCoolDown", coolDown);
