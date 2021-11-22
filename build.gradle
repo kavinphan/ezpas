@@ -30,9 +30,6 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-    // For supporting other mods
-    modImplementation "alexiil.mc.lib:libblockattributes-items:0.8.4"
 }
 
 processResources {
