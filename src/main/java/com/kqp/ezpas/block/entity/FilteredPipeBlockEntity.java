@@ -81,7 +81,7 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound tag) {
+    public void writeNbt(NbtCompound tag) {
         super.writeNbt(tag);
 
         if (!this.serializeLootTable(tag)) {
@@ -91,8 +91,6 @@ public class FilteredPipeBlockEntity extends LootableContainerBlockEntity implem
         for (int i = 0; i < flags.length; i++) {
             tag.putBoolean("Flag" + i, flags[i]);
         }
-
-        return tag;
     }
 
     @Override

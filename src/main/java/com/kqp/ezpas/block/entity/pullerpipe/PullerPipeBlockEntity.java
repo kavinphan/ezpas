@@ -82,14 +82,12 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound tag) {
+    public void writeNbt(NbtCompound tag) {
         super.writeNbt(tag);
 
         tag.putInt("RoundRobinCounter", rrCounter);
         tag.putInt("ExtractCoolDown", coolDown);
         tag.putInt("CurrentPriority", currentPriority);
-
-        return tag;
     }
 
     private void serverTick() {
