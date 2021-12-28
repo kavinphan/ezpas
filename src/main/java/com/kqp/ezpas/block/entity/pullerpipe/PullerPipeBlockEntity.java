@@ -257,7 +257,7 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
                 BlockEntity be = world.getBlockEntity(prevBlockPos);
 
                 if (be instanceof FilteredPipeBlockEntity) {
-                    FilteredPipeBlockEntity filterPipeBE = (FilteredPipeBlockEntity) world.getBlockEntity(blockPos);
+                    FilteredPipeBlockEntity filterPipeBE = (FilteredPipeBlockEntity) world.getBlockEntity(prevBlockPos);
 
                     // Check to see if redstone should disable the filter pipe.
                     boolean disabledWhenPowered = filterPipeBE.flags[FilteredPipeBlockEntity.REDSTONE_DISABLE_FLAG];
