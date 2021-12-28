@@ -25,9 +25,9 @@
     "ezpas.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.11.3",
+    "fabricloader": ">=0.12",
     "fabric": "*",
-    "minecraft": "1.18.x"
+    "minecraft": ">=1.18.1"
   },
   "custom": {
     "modupdater": {
