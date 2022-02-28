@@ -366,7 +366,13 @@ public abstract class PullerPipeBlockEntity extends BlockEntity {
      * @return True if success;
      */
     private boolean performExtraction() {
-        InsertionPoint ip = getListForPriority(currentPriority).get(rrCounter);
+	    InsertionPoint ip;
+		try {
+			ip = getListForPriority(currentPriority).get(rrCounter);
+		}
+		catch (IndexOutOfBoundsException e) {
+			return false;
+		}
         boolean success = false;
         Transaction trx = Transaction.openOuter();
 
